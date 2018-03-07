@@ -1,0 +1,305 @@
+apply plugin: 'com.android.application'
+
+//开启lambda
+apply plugin: 'me.tatarka.retrolambda'
+//开启lambda
+
+// 获取名字时间戳
+static def getNameDate() {
+    def date = new Date();
+    def formattedDate = date.format('yyyy-MM-dd')
+    return formattedDate
+}
+
+// 获取文件夹时间戳
+static def getDirectoryDate() {
+    def date = new Date();
+    def formattedDate = date.format('yyyy-MM-dd')
+    return formattedDate
+}
+
+//首字母转大写
+public static String toUpperCaseFirstOne(String s) {
+    if (Character.isUpperCase(s.charAt(0))) {
+        return s;
+    } else {
+        return (new StringBuilder()).append(Character.toUpperCase(s.charAt(0))).append(s.substring(1)).toString();
+    }
+}
+
+def MyBuildType = "com.bing.lan.sample.config.MyBuildType"
+
+
+android {
+    compileSdkVersion 26
+    buildToolsVersion "26.0.1"
+    defaultConfig {
+        applicationId rootProject.ext.applicationId
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode rootProject.ext.versionCode
+        versionName rootProject.ext.versionName // xxx.功能模块.bug数量
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        externalNativeBuild {
+            cmake {
+                cppFlags ""
+            }
+        }
+    }
+
+
+    signingConfigs {
+        debug {
+
+            v1SigningEnabled true
+            v2SigningEnabled true
+
+            if ("true" == Is_Jenkins) {
+                storeFile file(debug_key_store_file_path_in_server)
+            } else {
+                storeFile file(debug_key_store_file_path_in_local)
+            }
+        }
+
+        release {
+
+            v1SigningEnabled true
+            v2SigningEnabled true
+
+            //由于本地打包使用的是本机上的KeyStore，而Jenkins打包用的是服务器上的KeyStore
+            //两个路径不一样
+
+            if ("true" == Is_Jenkins) {
+                storeFile file(release_key_store_file_path_in_server)
+            } else {
+                storeFile file(release_key_store_file_path_in_local)
+            }
+
+            //不填写 安装的时候老是提醒 无签名信息
+            keyAlias ''
+            keyPassword ''
+            storePassword ''
+        }
+    }
+    buildTypes {
+
+        debug {
+            signingConfig signingConfigs.debug
+//            applicationIdSuffix ".debug"//applicationId 后缀
+
+            //app 名字
+            resValue "string", "app_name", "餐饮内网测试"
+            // Log 控制
+            buildConfigField "boolean", "LOG_DEBUG", "true"
+            // buildTypes 控制
+            buildConfigField MyBuildType, "BUILD_TYPES", MyBuildType + ".BUILD_TYPE_DEBUG"
+
+            // 内网 201
+            buildConfigField "String", "JZK_BASE_URL", debug_jzk_base_url
+        }
+
+        debug_pre {
+            signingConfig signingConfigs.debug
+//            applicationIdSuffix ".debug_pre"//applicationId 后缀
+
+            //  控制studio能否调试 和 BuildConfig.DEBUG 的 true false
+            debuggable true
+            //app 名字
+            resValue "string", "app_name", "餐饮外网测试"
+            // Log 控制
+            buildConfigField "boolean", "LOG_DEBUG", "true"
+            // buildTypes 控制
+//            buildConfigField "int", "BUILD_TYPES", "2"
+            buildConfigField MyBuildType, "BUILD_TYPES", MyBuildType + ".BUILD_TYPE_DEBUG_PRE"
+
+            // 测试外网 175
+            buildConfigField "String", "JZK_BASE_URL", debug_pre_jzk_base_url
+        }
+
+        release {
+            signingConfig signingConfigs.release
+
+            //app 名字
+            resValue "string", "app_name", "聚众客餐饮"
+            // Log 控制
+            buildConfigField "boolean", "LOG_DEBUG", "false"
+            // buildTypes 控制
+            buildConfigField MyBuildType, "BUILD_TYPES", MyBuildType + ".BUILD_TYPE_RELEASE"
+
+            //Zipalign优化
+            zipAlignEnabled true
+            // 移除无用的resource文件
+            shrinkResources false
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+
+            // 正式外网
+            buildConfigField "String", "JZK_BASE_URL", release_jzk_base_url
+        }
+
+    }
+
+    externalNativeBuild {
+        cmake {
+            path "CMakeLists.txt"
+        }
+    }
+
+    lintOptions {
+//        checkReleaseBuilds false
+        abortOnError false
+    }
+//    http://blog.csdn.net/dashan618/article/details/71641396
+//    aaptOptions {
+//        cruncherEnabled = false
+//        useNewCruncher = false
+//    }
+
+    //打印
+//    buildTypes.all { buildType ->
+//        println "buildTypeName: " + buildType.name
+//        print "Debuggable: "
+//        println buildType.debuggable
+//        println "----------------------------------"
+//    }
+
+    packagingOptions {
+        exclude 'META-INF/DEPENDENCIES.txt'
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/NOTICE.txt'
+        exclude 'META-INF/NOTICE'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/DEPENDENCIES'
+        exclude 'META-INF/notice.txt'
+        exclude 'META-INF/license.txt'
+        exclude 'META-INF/dependencies.txt'
+        exclude 'META-INF/LGPL2.1'
+//        exclude 'META-INF/rxjava.properties'
+    }
+
+    //开启lambda
+    compileOptions {
+        targetCompatibility 1.8
+        sourceCompatibility 1.8
+    }
+
+    // 渠道
+//    productFlavors {
+//        Commonsoon {
+//            manifestPlaceholders = [UMENG_CHANNEL_VALUE: "commonsoon"]
+//        }
+//    }
+    productFlavors {
+
+        productFlavors.all { flavor ->
+            flavor.manifestPlaceholders = [UMENG_CHANNEL_VALUE: name]
+        }
+
+        Commonsoon {}
+        Zhushou91 {}
+//        Market360 {}
+//        Xiaomi {}
+//        Wandoujia {}
+//        Marketandroid {}
+//        Yingyonghui {}
+//        Jifengmarket {}
+//        Mumayi {}
+//        Anzhimarket {}
+//        Yingyongbao {}
+//        Huaweimarket {}
+
+    }
+
+    //修改生成的apk名字
+    applicationVariants.all { variant ->
+        variant.outputs.each { output ->
+
+            def moduleName = "Sample"
+            //服务器配置
+            // 新名称   variant.productFlavors[0].name
+            def newName = 'Android-' + moduleName + '-' + Product_flavor + '-' + Build_time + '-' + toUpperCaseFirstOne(variant.buildType.name) + '.apk'
+
+            // 输出路径
+            def outDirectory = BUILD_PATH_IN_SERVER + '/' + Build_time;
+            println "服务器新名称：" + newName
+            println "服务器输出路径：" + outDirectory
+
+
+            if ("false" == Is_Jenkins) {   // 本机打包
+                newName = 'Android-' + moduleName + '-v' + "${defaultConfig.versionName}" + "-" + getNameDate()
+                newName = output.outputFile.name.replace(moduleName, newName);
+                newName = newName.replace("debug_pre", "外网测试");
+                newName = newName.replace("debug", "内网测试");
+                newName = newName.replace("release", "外网正式");
+                newName = newName.replace("unsigned", "未签名");
+                newName = newName.replace("signed", "已签名");
+
+                outDirectory = output.outputFile.getParent() + '/' + getDirectoryDate()
+
+                println "本机打包新名称：" + newName
+                println "本机打包输出路径：" + outDirectory
+            }
+            println "最终包名：" + newName
+            println "-------------------------------"
+
+            output.outputFile = new File(outDirectory, newName)
+
+        }
+    }
+}
+
+// 定义一个任务来获取 Debug Password
+task getDebugPassword << {
+    def keypassword = ''
+    def storepassword = ''
+    def keyalies = ''
+    if (rootProject.file(key_store_password_file).exists()) {
+//    if (rootProject.file('private.properties').exists()) {
+        Properties properties = new Properties();
+        properties.load(rootProject.file(key_store_password_file).newDataInputStream())
+        keypassword = properties.getProperty('debug_password')
+        storepassword = properties.getProperty('debug_storepassword')
+        keyalies = properties.getProperty('debug_keyalies')
+    }
+
+    android.signingConfigs.debug.keyPassword = keypassword
+    android.signingConfigs.debug.storePassword = storepassword
+    android.signingConfigs.debug.keyAlias = keyalies
+}
+
+// 定义一个任务来获取 Release Password
+task getReleasePassword << {
+    def keypassword = ''
+    def storepassword = ''
+    def keyalies = ''
+    if (rootProject.file(key_store_password_file).exists()) {
+        Properties properties = new Properties();
+        properties.load(rootProject.file(key_store_password_file).newDataInputStream())
+        keypassword = properties.getProperty('release_password')
+        storepassword = properties.getProperty('release_storepassword')
+        keyalies = properties.getProperty('release_keyalies')
+    }
+
+    android.signingConfigs.release.keyPassword = keypassword
+    android.signingConfigs.release.storePassword = storepassword
+    android.signingConfigs.release.keyAlias = keyalies
+}
+// 运行时才添加，相当于 Hook
+tasks.whenTaskAdded { theTask ->
+    if (theTask.name.contains("Debug")) {//如：assembleDebug_pre--------与 buildType有关
+        theTask.dependsOn "getDebugPassword"
+    } else if (theTask.name.contains("Release")) {
+        theTask.dependsOn "getReleasePassword"
+    }
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    })
+    compile 'com.android.support.constraint:constraint-layout:1.0.2'
+    testCompile "junit:junit:$rootProject.junitVersion"
+    compile 'com.bing.lan:comm:0.0.1'
+}

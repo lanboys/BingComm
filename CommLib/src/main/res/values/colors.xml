@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#0195ff</color>
+    <color name="colorPrimaryDark">#0195ff</color>
+    <color name="colorAccent">#0195ff</color>
+
+    <!--<color name="main_color">#59B2FD</color>-->
+    <!--<color name="main_color_shallow">#B8DFFF</color>-->
+
+    <color name="color_333">#333333</color>
+    <!--<color name="color_666">#666666</color>-->
+    <!--<color name="color_ff795e">#FF795E</color>-->
+    <!--&lt;!&ndash;*******************************************&ndash;&gt;-->
+    <!--&lt;!&ndash;*******************************************&ndash;&gt;-->
+    <!--&lt;!&ndash; 主要背景色 &ndash;&gt;-->
+    <!--<color name="color_999">#69717e</color>-->
+
+    <!--<color name="main_color_test">#e6a6e2</color>-->
+
+
+    <!--&lt;!&ndash; 主要背景色 &ndash;&gt;-->
+    <!--&lt;!&ndash;<color name="main_color_background">#eff0f2</color>&ndash;&gt;-->
+    <!--<color name="main_color_background">#f0f1f3</color>-->
+    <!--&lt;!&ndash; 主要文字黑色 &ndash;&gt;-->
+    <!--<color name="main_color_text_black">#3a424d</color>-->
+    <!--&lt;!&ndash; 主要文字灰色 &ndash;&gt;-->
+    <!--<color name="main_color_text_gray">#7e8693</color>-->
+    <!--&lt;!&ndash; 主要白色 &ndash;&gt;-->
+    <color name="main_color_white">#fdfdfe</color>
+    <!--&lt;!&ndash; 主要蓝色 &ndash;&gt;-->
+    <color name="main_color_blue">#0195ff</color>
+    <!--&lt;!&ndash; 主要蓝色 &ndash;&gt;-->
+    <!--<color name="main_color_gray">#dfe4ed</color>-->
+    <!--&lt;!&ndash; 主要红色 &ndash;&gt;-->
+    <!--<color name="main_color_red">#ef1b10</color>-->
+    <!-- 主要 分割线 颜色 -->
+    <color name="main_color_gray_line">#f0f1f3</color>
+    <!-- popup 阴影 -->
+    <color name="popup_color_shadow">#8b7b7979</color>
+
+    <!--&lt;!&ndash; 按钮  灰色  &ndash;&gt;-->
+    <!--<color name="btn_color_gray">#9199a6</color>-->
+    <!--<color name="btn_color_blue">#42b0ff</color>-->
+    <!--<color name="btn_color_shallow">#b8dfff</color>-->
+
+    <!--&lt;!&ndash; 按钮点击颜色（暂时未更改） &ndash;&gt;-->
+
+
+    <!-- 获取验证码 颜色 -->
+    <color name="btn_color_yellow_normal">#ffce4b</color>
+    <color name="btn_color_yellow_select">#b7e2e2</color>
+
+    <!-- 登陆注册 页面 edit 文字颜色 -->
+    <color name="edit_text_color">#9199a6</color>
+    <color name="edit_text_hint_color">#9199a6</color>
+
+
+    <!--&lt;!&ndash; 我的店铺 认证 颜色 &ndash;&gt;-->
+    <!--<color name="shop_color_background_select">#0195ff</color>-->
+    <!--&lt;!&ndash;<color name="shop_color_background_unSelect">#bc28cf</color>&ndash;&gt;-->
+    <!--<color name="shop_color_background_unSelect">#fdfdfe</color>-->
+    <!--&lt;!&ndash; 入驻时间 &ndash;&gt;-->
+    <!--<color name="shop_color_text_time">#69717e</color>-->
+
+
+    <!--&lt;!&ndash;*******************************************&ndash;&gt;-->
+    <!--&lt;!&ndash;*******************************************&ndash;&gt;-->
+
+
+    <!--&lt;!&ndash;登录注册 &ndash;&gt;-->
+
+
+    <!--<color name="white">#ffffffff</color>-->
+    <!--<color name="theme_positive">#ee9900</color>-->
+    <!--<color name="color_b3d466">#B3D466</color>-->
+
+    <color name="black_alph04">#66000000</color>
+
+    <color name="press_color">#DDDDDD</color>
+    <color name="unPress_color">#ffffff</color>
+
+    <!--&lt;!&ndash; 加载页面颜色 &ndash;&gt;-->
+    <color name="load_pager_background">#f3f3f3</color>
+
+
+    <!--&lt;!&ndash; 首页轮播图 &ndash;&gt;-->
+    <!--<color name="view_pager_indicator_fill">#F7ECC8</color>-->
+    <!--<color name="view_pager_indicator_stroke">#E1E1E1</color>-->
+
+
+    <!--<color name="black20">#4c000000</color>-->
+    <!--<color name="black50">#7d000000</color>-->
+</resources>
