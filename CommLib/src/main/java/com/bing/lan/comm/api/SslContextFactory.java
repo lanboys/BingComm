@@ -3,7 +3,7 @@
 //import android.util.Log;
 //
 //import com.bing.lan.comm.app.AppUtil;
-//import com.juzhongke.jzkmarketing.comm.R;
+//import com.juzhongke.seller.R;
 //
 //import java.io.InputStream;
 //import java.security.KeyStore;

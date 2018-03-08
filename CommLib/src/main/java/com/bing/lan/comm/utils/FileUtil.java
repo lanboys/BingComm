@@ -14,9 +14,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -47,9 +45,6 @@ public class FileUtil {
 
     /**
      * 根据 file 删除文件或者文件夹
-     *
-     * @param file
-     * @return
      */
     public static boolean deleteFileOrFolder(File file) {
         if (file == null) {
@@ -90,9 +85,6 @@ public class FileUtil {
 
     /**
      * 从集合中 找出最新修改的文件
-     *
-     * @param files
-     * @return
      */
     public static File findLastFileFromList(@NonNull ArrayList<File> files) {
         File latestSavedFile = null;
@@ -173,6 +165,7 @@ public class FileUtil {
     public static long getFileSize(String file) throws Exception {
         return getFileSize(new File(file));
     }
+
     /**
      * 获取指定文件大小
      */
@@ -194,9 +187,6 @@ public class FileUtil {
     /**
      * 转换文件大小
      * String fileSize = Formatter.formatFileSize(AppUtil.getAppContext(), bitmapSize / 8);
-     *
-     * @param fileS
-     * @return
      */
     public static String formatFileSize(long fileS) {
         DecimalFormat df = new DecimalFormat("#.00");
@@ -221,6 +211,14 @@ public class FileUtil {
      * 将url转成文件名
      **/
     public static String url2FileName(String url) {
+
+        int lastIndexOf = url.lastIndexOf(".");
+        String substring = url.substring(0, lastIndexOf);
+        String substring1 = url.substring(lastIndexOf);
+
+        log.d("url2FileName():substring " + substring);
+        log.d("url2FileName():substring1 " + substring1);
+        log.d("url2FileName():url " + url);
 
         url = url.replace("?", "").replace(".", "").replace(":", "").replace("=", "");
 
@@ -608,15 +606,20 @@ public class FileUtil {
      * 改名
      */
     public static boolean copy(String src, String des, boolean delete) {
-        File file = new File(src);
-        if (!file.exists()) {
+        File srcFile = new File(src);
+        if (!srcFile.exists()) {
             return false;
         }
         File desFile = new File(des);
+        return copy(srcFile, desFile, delete);
+    }
+
+    public static boolean copy(File srcFile, File desFile, boolean delete) {
+
         FileInputStream in = null;
         FileOutputStream out = null;
         try {
-            in = new FileInputStream(file);
+            in = new FileInputStream(srcFile);
             out = new FileOutputStream(desFile);
             byte[] buffer = new byte[1024];
             int count = -1;
@@ -632,38 +635,45 @@ public class FileUtil {
             IOUtils.close(out);
         }
         if (delete) {
-            file.delete();
+            srcFile.delete();
         }
         return true;
     }
 
-    // 创建图片路径
-    private File createImageFile(String str) throws IOException {
-        String timeStamp = new SimpleDateFormat("MMdd_HHmmss").format(new Date());//yyyyMMdd_
+    /**
+     * 移动文件到指定的目录
+     */
+    public static boolean moveFile(File srcFile, File desFile, boolean delete) {
 
-        //log.e("createImageFile() timeStamp : " + timeStamp);//  20170426_144058
+        try {
 
-        String imageFileName = "J_" + timeStamp /*+ "_"*/;
-        if (str != null) {
-            imageFileName += "_" + str + "_";
+            String absolutePath = desFile.getAbsolutePath();
+            String parent = absolutePath.substring(0, absolutePath.lastIndexOf("/"));
+
+            File file = new File(parent);
+            if (!file.exists()) { //没主动生成目录会报错,
+                file.mkdirs();
+            }
+
+            if (srcFile.renameTo(desFile)) {
+                log.i("File is moved successful!");
+            } else {
+                log.i("File is failed to move!");
+            }
+        } catch (Exception e) {
+            log.e("moveFile():  ", e);
+            return false;
         }
-        //log.e("createImageFile() imageFileName: " + imageFileName);//  JPEG_20170426_144058_
 
-        ///storage/emulated/0/Android/data/com.bing.lan.comm/files/Pictures/
-        File storageDir = AppUtil.getAppContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-
-        File image = File.createTempFile(
-                imageFileName,      /* prefix */
-                ".jpg",              /* suffix */
-                storageDir          /* directory */
-        );
-
-        //File.createTempFile()
-
-        log.e("createImageFile()选择图片路径: " + image);
-
-        ///storage/emulated/0/Android/data/com.bing.lan.comm/files/Pictures/JPEG_20170426_144058_435020664.jpg
-
-        return image;
+        if (delete) {
+            srcFile.delete();
+        }
+        return true;
     }
 }
+
+
+
+
+
+

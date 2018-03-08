@@ -1,5 +1,6 @@
 package com.bing.lan.comm.utils;
 
+import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -9,17 +10,20 @@ import android.media.ThumbnailUtils;
 import android.os.Build;
 import android.os.SystemClock;
 
+import com.bing.lan.comm.utils.loader.AssetsLoader;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * bitmap相关操作工具类
  *
- * @author nanchen
  * @fileName AiYaSchoolPush
  * @packageName com.example.nanchen.aiyaschoolpush.utils
  * @date 2016/11/28  09:45
@@ -29,35 +33,147 @@ public class BitmapUtil {
 
     protected static final LogUtil log = LogUtil.getLogUtil(BitmapUtil.class, LogUtil.LOG_VERBOSE);
 
+    public static final int WRAP_CONTENT_LENGTH = -1;
+
+    public static class BitmapResult {
+
+        //源文件宽高
+        public int srcWidth;
+        public int srcHeight;
+
+        //要求的宽高
+        public int reqWidth;
+        public int reqHeight;
+        //加载到内存的宽高
+        public int realWidth;
+        public int realHeight;
+        //加载到内存中的 宽/高 比例
+        public float realRatio;
+
+        public int inSampleSize = 1;
+        public Bitmap bitmap;
+
+        @Override
+        public String toString() {
+            return "BitmapResult{" +
+                    "srcWidth=" + srcWidth +
+                    ", srcHeight=" + srcHeight +
+                    ", reqWidth=" + reqWidth +
+                    ", reqHeight=" + reqHeight +
+                    ", realWidth=" + realWidth +
+                    ", realHeight=" + realHeight +
+                    ", realRatio=" + realRatio +
+                    ", inSampleSize=" + inSampleSize +
+                    ", bitmap=" + bitmap +
+                    '}';
+        }
+    }
+
     /**
-     * 计算图片的压缩比率
+     * 计算图片的压缩比率(不计算放大)
      *
      * @param options   参数
      * @param reqWidth  目标的宽度
      * @param reqHeight 目标的高度
      */
-    private static int calculateInSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight) {
+    private static BitmapResult calculateInSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight) {
         // 源图片的高度和宽度
         final int height = options.outHeight;
         final int width = options.outWidth;
+        BitmapResult bitmapResult = new BitmapResult();
+        bitmapResult.srcHeight = options.outHeight;
+        bitmapResult.srcWidth = options.outWidth;
+
         int inSampleSize = 1;
 
         // 一个为0 就按原来比例
         if (reqHeight == 0 || reqWidth == 0) {
-            return inSampleSize;
+            bitmapResult.inSampleSize = inSampleSize;
+            bitmapResult.reqHeight = reqHeight;
+            bitmapResult.reqWidth = reqWidth;
+
+            bitmapResult.realHeight = height / inSampleSize;
+            bitmapResult.realWidth = width / inSampleSize;
+
+            return bitmapResult;
         }
 
-        if (height > reqHeight || width > reqWidth) {
-            final int halfHeight = height / 2;
-            final int halfWidth = width / 2;
-            // Calculate the largest inSampleSize value that is a power of 2 and keeps both
-            // height and width larger than the requested height and width.
-            while ((halfHeight / inSampleSize) > reqHeight
-                    && (halfWidth / inSampleSize) > reqWidth) {
-                inSampleSize *= 2;
-            }
+        if (reqHeight == WRAP_CONTENT_LENGTH) {
+            reqHeight = height;
         }
-        return inSampleSize;
+
+        if (reqWidth == WRAP_CONTENT_LENGTH) {
+            reqWidth = width;
+        }
+        //https://www.jianshu.com/p/67cfd38c52dc
+        //if (realHeight > reqHeight || realWidth > reqWidth) {
+        //    // Calculate ratios of realHeight and realWidth to requested realHeight and realWidth,计算出实际宽高和目标宽高的比率
+        //    final int widthRatio = Math.round((float) realWidth / (float) reqWidth);
+        //    final int heightRatio = Math.round((float) realHeight / (float) reqHeight);
+        //
+        //    // 选择宽和高中   最小的比率   作为inSampleSize的值，
+        //    // 这样可以保证最终图片的宽和高一定都会   大于等于   目标的宽和高。
+        //    inSampleSize = heightRatio < widthRatio ? heightRatio : widthRatio;
+        //
+        //    // Anything more than 2x the requested pixels we'll sample down
+        //    final float totalPixels = realWidth * realHeight;
+        //    // further
+        //    final float totalReqPixelsCap = reqWidth * reqHeight * 2;
+        //    while (totalPixels / (inSampleSize * inSampleSize) > totalReqPixelsCap) {
+        //        inSampleSize++;
+        //    }
+        //}
+
+        if (height > reqHeight || width > reqWidth) {
+            //  计算出实际宽高和目标宽高的比率
+            //final int widthRatio = Math.round((float) realWidth / (float) reqWidth);
+            //final int heightRatio = Math.round((float) realHeight / (float) reqHeight);
+            float widthRatio = (float) width / (float) reqWidth;
+            float heightRatio = (float) height / (float) reqHeight;
+
+            // 选择宽和高中   最大的比率   作为inSampleSize的值，
+            // 这样可以保证最终图片的宽和高一定都会    小于等于   目标的宽和高。
+            float v = heightRatio > widthRatio ? heightRatio : widthRatio;
+            inSampleSize = (int) (v + 0.5);
+        }
+
+        //if (realHeight > reqHeight || realWidth > reqWidth) {
+        //    final int halfHeight = realHeight / 2;
+        //    final int halfWidth = realWidth / 2;
+        //
+        //    // Calculate the largest inSampleSize value that is a power of 2 and keeps both
+        //    // realHeight and realWidth larger than the requested realHeight and realWidth.
+        //
+        //    //http://blog.csdn.net/niu0147/article/details/45582899
+        //    //https://www.cnblogs.com/androidxiaoyang/p/3752905.html
+        //    //官网的这个方法是: 将图片  一半一半  的压缩,直到压缩成成  大于  所需宽高数的那个最低值
+        //
+        //    //while ((halfHeight / inSampleSize) >= reqHeight && (halfWidth / inSampleSize) >= reqWidth) {
+        //    //    inSampleSize *= 2;
+        //    //}
+        //    // 简化如下
+        //    float h = halfHeight / inSampleSize;
+        //    float w = halfWidth / inSampleSize;
+        //
+        //    while (h >= reqHeight && w >= reqWidth) {
+        //        inSampleSize *= 2;
+        //        h = halfHeight / inSampleSize;
+        //        w = halfWidth / inSampleSize;
+        //    }
+        //}
+
+        bitmapResult.reqHeight = reqHeight;
+        bitmapResult.reqWidth = reqWidth;
+        if (inSampleSize < 1) {
+            inSampleSize = 1;
+        }
+
+        bitmapResult.inSampleSize = inSampleSize;
+
+        //bitmapResult.realHeight = realHeight / inSampleSize;
+        //bitmapResult.realWidth = realWidth / inSampleSize;
+
+        return bitmapResult;
     }
 
     /**
@@ -72,7 +188,8 @@ public class BitmapUtil {
         // 读取图片长款
         BitmapFactory.decodeResource(res, resId, options);
         // 调用上面定义的方法计算inSampleSize值
-        options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
+        BitmapResult bitmapResult = calculateInSampleSize(options, reqWidth, reqHeight);
+        options.inSampleSize = bitmapResult.inSampleSize;
         // 使用获取到的inSampleSize值再次解析图片
         options.inJustDecodeBounds = false;
         // 载入一个稍大的缩略图
@@ -82,7 +199,7 @@ public class BitmapUtil {
     }
 
     /**
-     * 通过传入的bitmap，进行压缩，得到符合标准的bitmap
+     * 通过传入的bitmap，进行压缩，得到符合尺寸标准的bitmap
      */
     private static Bitmap createScaleBitmap(Bitmap src, int dstWidth, int dstHeight, int inSampleSize) {
         //如果inSampleSize是2的倍数，也就说这个src已经是我们想要的缩略图了，直接返回即可。
@@ -102,15 +219,22 @@ public class BitmapUtil {
      * 按原比例 从SD卡加载图片
      */
     public static Bitmap decodeSampledBitmapFromFile(String pathName) {
+        return decodeSampledBitmapFromFile(pathName, 0);
+    }
+
+    /**
+     * 按原比例 从SD卡加载图片
+     */
+    public static Bitmap decodeSampledBitmapFromFile(String pathName, int targetAngle) {
 
         final BitmapFactory.Options options = new BitmapFactory.Options();
         options.inPreferredConfig = Bitmap.Config.RGB_565;
         Bitmap src = BitmapFactory.decodeFile(pathName, options);
         int bitmapAngle = getBitmapDegree(pathName);
-        if (bitmapAngle != 0) {
+        if (bitmapAngle != targetAngle) {
             //对图片进行旋转校验 如果图片已经出现旋转了  现在开始复位并返回
-            src = rotateBitmapByAngle(src, bitmapAngle);
-            log.d("decodeSampledBitmapFromFile(): 照片旋转角度:  " + bitmapAngle);
+            src = rotateBitmapByAngle(src, bitmapAngle - targetAngle);
+            log.d("decodeSampledBitmapFromFile(): 照片旋转角度:  " + (bitmapAngle - targetAngle));
         }
 
         return src;
@@ -119,29 +243,70 @@ public class BitmapUtil {
     /**
      * 根据给定的宽高 从SD卡上加载图片
      */
+    public static BitmapResult decodeSampledBitmapFromFile(String pathName, int reqWidth, int reqHeight) {
+        return decodeSampledBitmapFromFile(pathName, reqWidth, reqHeight, 0);
+    }
 
-    public static Bitmap decodeSampledBitmapFromFile(String pathName, int reqWidth, int reqHeight) {
+    /**
+     * 根据给定的宽高 从SD卡上加载图片
+     */
+    public static BitmapResult decodeSampledBitmapFromFile(String pathName, int reqWidth, int reqHeight, int targetAngle) {
 
+        log.e("decodeSampledBitmapFromFile() reqWidth: " + reqWidth + " , reqHeight: " + reqHeight);
         final BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = true;
         BitmapFactory.decodeFile(pathName, options);
-        options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
+        BitmapResult bitmapResult = calculateInSampleSize(options, reqWidth, reqHeight);
+        options.inSampleSize = bitmapResult.inSampleSize;
         log.e("decodeSampledBitmapFromFile():  options.inSampleSize " + options.inSampleSize);
         options.inPreferredConfig = Bitmap.Config.RGB_565;
         options.inJustDecodeBounds = false;
         Bitmap src = BitmapFactory.decodeFile(pathName, options);
 
         int bitmapAngle = getBitmapDegree(pathName);
-        if (bitmapAngle != 0) {
+        if (bitmapAngle != targetAngle) {
             //对图片进行旋转校验 如果图片已经出现旋转了  现在开始复位并返回
-            src = rotateBitmapByAngle(src, bitmapAngle);
-            log.d("decodeSampledBitmapFromFile(): 照片旋转角度:  " + bitmapAngle);
+            src = rotateBitmapByAngle(src, bitmapAngle - targetAngle);
+            log.d("decodeSampledBitmapFromFile(): 照片旋转角度:  " + (bitmapAngle - targetAngle));
         }
+        bitmapResult.bitmap = src;
 
+        bitmapResult.realHeight = src.getHeight();
+        bitmapResult.realWidth = src.getWidth();
+
+        bitmapResult.realRatio = (float) bitmapResult.realWidth / (float) bitmapResult.realHeight;
+
+        return bitmapResult;
+    }
+
+    public static Bitmap decodeSampledBitmapFromFileAndScale(String pathName, int reqWidth, int reqHeight) {
+        return decodeSampledBitmapFromFileAndScale(pathName, reqWidth, reqHeight, 0);
+    }
+
+    public static Bitmap decodeSampledBitmapFromFileAndScale(String pathName, int reqWidth, int reqHeight, int targetAngle) {
+
+        final BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inJustDecodeBounds = true;
+        BitmapFactory.decodeFile(pathName, options);
+        BitmapResult bitmapResult = calculateInSampleSize(options, reqWidth, reqHeight);
+        options.inSampleSize = bitmapResult.inSampleSize;
+        log.e("decodeSampledBitmapFromFile():  options.inSampleSize " + options.inSampleSize);
+        options.inPreferredConfig = Bitmap.Config.RGB_565;
+        options.inJustDecodeBounds = false;
+        Bitmap src = BitmapFactory.decodeFile(pathName, options);
+
+        int bitmapAngle = getBitmapDegree(pathName);
+        if (bitmapAngle != targetAngle) {
+            //对图片进行旋转校验 如果图片已经出现旋转了  现在开始复位并返回
+            src = rotateBitmapByAngle(src, bitmapAngle - targetAngle);
+            log.d("decodeSampledBitmapFromFile(): 照片旋转角度:  " + (bitmapAngle - targetAngle));
+        }
         return createScaleBitmap(src, reqWidth, reqHeight, options.inSampleSize);
     }
 
     /**
+     * 获取bitmap的大小(字节)  注意bitmap与file大小不一样
+     *
      * @param bitmap
      * @return 字节
      */
@@ -162,7 +327,7 @@ public class BitmapUtil {
         return bitmap.getRowBytes() * bitmap.getHeight();                //earlier version
     }
 
-    public static String savePicToSdcard(Bitmap bitmap, String path, String fileName) {
+    public static String saveBitmapToFile(Bitmap bitmap, String path, String fileName) {
         String filePath = "";
         if (bitmap == null) {
             return filePath;
@@ -183,11 +348,10 @@ public class BitmapUtil {
         return filePath;
     }
 
-    public static File savePicToSdcard(Bitmap bitmap, File destFile, int quality) {
+    public static File saveBitmapToFile(Bitmap bitmap, File destFile, int quality) {
         if (bitmap == null) {
             throw new NullPointerException("bitmap==null");
         }
-
         OutputStream os = null;
         try {
             os = new FileOutputStream(destFile);
@@ -197,11 +361,19 @@ public class BitmapUtil {
             if (!bitmap.isRecycled()) {
                 bitmap.recycle();
             }
+            return destFile;
         } catch (IOException e) {
-            log.e("savePicToSdcard():  " + e.getLocalizedMessage());
+            log.e("saveBitmapToFile():  " + e.getLocalizedMessage());
         }
+        return null;
+    }
 
-        return destFile;
+    public static File saveAssetsBitmapToFile(Context context, String fileName, File destFile) {
+        Bitmap bitmap = AssetsLoader.loadBitmap(context, fileName);
+        if (bitmap != null) {
+            return saveBitmapToFile(bitmap, destFile, 50);
+        }
+        return null;
     }
 
     /**
@@ -217,8 +389,8 @@ public class BitmapUtil {
      * 按比例压缩压缩
      */
     public static File compressImage(File srcFile, File destFile, int reqWidth, int reqHeight, int maxSize) {
-        final Bitmap bitmap = BitmapUtil.decodeSampledBitmapFromFile(srcFile.getAbsolutePath(), reqWidth, reqHeight);
-        BitmapUtil.compressImage(bitmap, destFile, maxSize);
+        final BitmapResult bitmap = BitmapUtil.decodeSampledBitmapFromFile(srcFile.getAbsolutePath(), reqWidth, reqHeight);
+        BitmapUtil.compressImage(bitmap.bitmap, destFile, maxSize);
         return destFile;
     }
 
@@ -362,5 +534,57 @@ public class BitmapUtil {
         matrix.postRotate(degress);
         Bitmap result = Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), matrix, true);
         return result;
+    }
+
+    /**
+     * 原比例压缩压缩
+     */
+    public static File compressImage(Context context, String srcFile, int maxSize) {
+        final Bitmap bitmap = BitmapUtil.decodeSampledBitmapFromFile(srcFile);
+        File destFile = createImageFile(context);
+        BitmapUtil.compressImage(bitmap, destFile, maxSize);
+        return destFile;
+    }
+
+    /**
+     * 删除压缩图片
+     */
+    public static void deleteCompressImage(Context context) {
+        File storageDir = context.getExternalCacheDir();//放在缓存中--->抛异常，必须主动生成目录会报错
+        storageDir = new File(storageDir, "PhotoSelectCache");
+        FileUtil.deleteFileOrFolder(storageDir);
+    }
+
+    // 创建图片路径
+    public static File createImageFile(Context context) {
+        String timeStamp = new SimpleDateFormat("MMdd_HHmmss").format(new Date());//yyyyMMdd_
+        String imageFileName = "Y_" + timeStamp;
+
+        //File storageDir = context.getExternalFilesDir("PhotoSelectCache");
+        //File storageDir = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File storageDir = context.getExternalCacheDir();//放在缓存中--->抛异常，必须主动生成目录会报错
+        storageDir = new File(storageDir, "PhotoSelectCache");
+
+        if (!storageDir.mkdirs() && (!storageDir.exists() || !storageDir.isDirectory())) {
+            return null;
+        }
+
+        File image;
+        try {
+            image = File.createTempFile(
+                    imageFileName,      /* prefix 文件名前缀*/
+                    ".jpg",              /* suffix 后缀*/
+                    storageDir          /* directory 路径*/
+            );
+        } catch (IOException e) {
+
+            File cacheDir = new File(context.getCacheDir(), "pic");
+            if (!cacheDir.mkdirs() && (!cacheDir.exists() || !cacheDir.isDirectory())) {
+                return null;
+            }
+            image = new File(cacheDir, imageFileName + ".jpg");
+        }
+
+        return image;
     }
 }

@@ -28,13 +28,19 @@
 
     <TextView
         android:id="@+id/toolbar_title"
-        android:layout_width="wrap_content"
+        android:layout_width="175dp"
         android:layout_height="match_parent"
         android:layout_marginLeft="30dp"
+        android:ellipsize="marquee"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
         android:gravity="center"
         android:paddingRight="18dp"
+        android:singleLine="true"
         android:textSize="20sp"
         tools:text="toolbar标题"/>
+    <!--android:maxLines="1"-->
+    <!--android:maxLength="15"-->
 
 </RelativeLayout>
 

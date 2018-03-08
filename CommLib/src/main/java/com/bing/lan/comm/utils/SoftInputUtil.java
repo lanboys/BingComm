@@ -2,12 +2,15 @@ package com.bing.lan.comm.utils;
 
 import android.app.Activity;
 import android.content.Context;
+import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
 
 public class SoftInputUtil {
 
     /**
      * 切换开启与关闭状态
+     *
      * @param activity
      */
     public static void toggleSoftInput(Activity activity) {
@@ -30,5 +33,17 @@ public class SoftInputUtil {
             ((InputMethodManager) activity.getSystemService(Activity.INPUT_METHOD_SERVICE))
                     .hideSoftInputFromWindow(activity.getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
         }
+    }
+
+    //http://ask.csdn.net/questions/166976  不起作用??????
+
+    public static void showSoftInput(Activity activity, View view) {
+        InputMethodManager inputMethodManager = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+        inputMethodManager.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT);
+    }
+
+    public static void showSoftInput(EditText editText) {
+        editText.setFocusable(true);
+        editText.requestFocus();
     }
 }

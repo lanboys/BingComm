@@ -107,4 +107,13 @@ public class LabelButton extends FrameLayout implements View.OnClickListener {
 
         void onLabelClick(View v, boolean isSelected);
     }
+
+
+    public void setButtonTextColor(int id){
+        button.setTextColor(id);
+    }
+
+    public void setButtonBackground(int id){
+        button.setBackgroundResource(id);
+    }
 }

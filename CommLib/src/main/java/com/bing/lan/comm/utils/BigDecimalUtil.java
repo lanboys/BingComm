@@ -72,6 +72,12 @@ public class BigDecimalUtil {
         return douStr;
     }
 
+    public static String double2String2(double dou) {
+        DecimalFormat df = new DecimalFormat("###0");//会四舍五入
+        String douStr = df.format(dou);
+        return douStr;
+    }
+
     public static Double roundDouble(double dou, int i) {
         Double d = null;
         try {

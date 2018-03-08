@@ -4,7 +4,7 @@ import android.app.Activity;
 import android.view.View;
 
 import com.bigkoo.pickerview.OptionsPickerView;
-import com.bing.lan.comm.utils.JsonLoader;
+import com.bing.lan.comm.utils.loader.AssetsLoader;
 import com.bing.lan.comm.picker.bean.AreaBean;
 import com.bing.lan.comm.picker.bean.ChinaAreaBean;
 import com.bing.lan.comm.picker.bean.CityBean;
@@ -91,7 +91,7 @@ public class AreaPickerUtil {
     }
 
     private void initOptionData1(Activity activity) {
-        String json = JsonLoader.loadAssetsJson(activity, "area-code.json");
+        String json = AssetsLoader.loadJsonString(activity, "area-code.json");
         ChinaAreaBean chinaAreaBean = ChinaAreaBean.objectFromData(json);
 
         options1Items2 = chinaAreaBean.getChina();

@@ -10,7 +10,7 @@ import android.widget.PopupWindow;
 /**
  * Created by 520 on 2017/7/4.
  */
-
+//http://www.jianshu.com/p/799dbb86f908
 public class BasePopupWindow extends PopupWindow {
 
     protected Context mContext;

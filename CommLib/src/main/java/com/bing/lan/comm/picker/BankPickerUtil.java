@@ -5,7 +5,7 @@ import android.view.View;
 
 import com.bigkoo.pickerview.OptionsPickerView;
 import com.bing.lan.comm.picker.bean.BankListBean;
-import com.bing.lan.comm.utils.JsonLoader;
+import com.bing.lan.comm.utils.loader.AssetsLoader;
 
 import java.util.ArrayList;
 
@@ -96,7 +96,7 @@ public class BankPickerUtil {
     }
 
     private void initOptionData1(Activity activity) {
-        String json = JsonLoader.loadAssetsJson(activity, "banks.json");
+        String json = AssetsLoader.loadJsonString(activity, "banks.json");
         BankListBean categoryBean = BankListBean.objectFromData(json);
 
         options1Items1 = categoryBean.getBanks();

@@ -5,9 +5,6 @@ import com.bing.lan.comm.utils.LogUtil;
 import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
 
-/**
- * Created by 520 on 2017/6/22.
- */
 
 public abstract class BaseObserver<T> implements Observer<T> {
 

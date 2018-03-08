@@ -7,6 +7,7 @@ import java.util.regex.Pattern;
 
 public class RegExpUtil {
 
+    // 校验 手机六位数的 验证码
     public static boolean checkVcode(String vcode) {
         String regex = "^[0-9]{6}$";
         return check(regex, vcode);
@@ -119,8 +120,18 @@ public class RegExpUtil {
 
     public static boolean checkPhoneNum(String phone) {
         //String regex = "^(1(([35][0-9])|([4][57])|[8][0-9]))\\d{8}$";
-        String regex = "^(1(([357][0-9])|([4][57])|[8][0-9]))\\d{8}$";
+        //String regex = "^(1(([3578][0-9])|([4][57])|[8][0-9]))\\d{8}$";
+        String regex = "^1[3|4|5|7|8]\\d{9}$";
+
         return check(regex, phone);
+    }
+
+    /**
+     * 正则表达式:验证身份证
+     */
+    public static boolean checkCard(String card) {
+        String regex = "(^\\d{15}$)|(^\\d{17}([0-9]|X|x)$)";
+        return check(regex, card);
     }
 
     public static boolean checkIdentityNum(String identityNum) {
@@ -166,7 +177,16 @@ public class RegExpUtil {
      */
     public static boolean checkPassword(String password) {
         //String regex = "^(?=.*?[a-z])(?=.*?[0-9])[a-zA-Z0-9_]{6,16}$";
-        String regex = "^[0-9a-zA-Z_]{8,20}$";
+        //String regex = "^[0-9a-zA-Z_]{8,20}$";
+        String regex = "^(?![0-9]+$)(?![a-zA-Z]+$)[0-9A-Za-z]{8,20}$";//ios的
+        return check(regex, password);
+    }
+
+    /**
+     * 5到20个数字，字母
+     */
+    public static boolean checkAccount(String password) {
+        String regex = "^([0-9a-zA-Z]+){5,20}$";//ios的
         return check(regex, password);
     }
 

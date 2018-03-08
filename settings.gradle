@@ -1,6 +1,5 @@
-include ':Sample',
-//        ':myapplication',
-        ':CommLib'
-//        ':cropLib',
-//        ':matisse',
-//        ':LoadDataLayoutLib'
+include       ':Sample'
+include       ':cropLib'
+include       ':matisse'
+include       ':LoadDataLayoutLib'
+include       ':CommLib'

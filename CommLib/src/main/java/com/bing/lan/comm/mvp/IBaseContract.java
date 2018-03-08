@@ -10,15 +10,15 @@ public interface IBaseContract {
 
     interface IBaseView<T extends IBasePresenter> {
 
-        void showError(String msg);
+        void showError(CharSequence msg);
 
-        void showToast(String msg);
+        void showToast(CharSequence msg);
 
-        void showInfo(String msg);
+        void showInfo(CharSequence msg);
 
-        void showTip(String msg);
+        void showTip(CharSequence msg);
 
-        void showProgressDialog(String msg);
+        void showProgressDialog(CharSequence msg);
 
         void dismissProgressDialog();
 
@@ -36,6 +36,18 @@ public interface IBaseContract {
     }
 
     interface IBasePresenter<T extends IBaseView, M extends IBaseModule> extends OnDataChangerListener {
+
+        void showError(CharSequence msg);
+
+        void showToast(CharSequence msg);
+
+        void showInfo(CharSequence msg);
+
+        void showTip(CharSequence msg);
+
+        void showProgressDialog(CharSequence msg);
+
+        void dismissProgressDialog();
 
         void onAttachView(T view);
 

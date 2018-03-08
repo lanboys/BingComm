@@ -6,7 +6,7 @@ import android.view.View;
 import com.bigkoo.pickerview.OptionsPickerView;
 import com.bing.lan.comm.picker.bean.CategoryFirst;
 import com.bing.lan.comm.picker.bean.CategoryThird;
-import com.bing.lan.comm.utils.JsonLoader;
+import com.bing.lan.comm.utils.loader.AssetsLoader;
 import com.bing.lan.comm.picker.bean.CategoryBean;
 import com.bing.lan.comm.picker.bean.CategorySecond;
 
@@ -104,7 +104,7 @@ public class CategoryPickerUtil {
     }
 
     private void initOptionData1(Activity activity) {
-        String json = JsonLoader.loadAssetsJson(activity, "category.json");
+        String json = AssetsLoader.loadJsonString(activity, "category.json");
         CategoryBean categoryBean = CategoryBean.objectFromData(json);
 
         options1Items1 = categoryBean.getData();

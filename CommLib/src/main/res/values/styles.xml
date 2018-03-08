@@ -14,55 +14,21 @@
         <!-- 修改默认的溢出菜单 -->
         <!--<item name="actionOverflowMenuStyle">@style/OverflowMenuStyle</item>-->
     </style>
-    <style
-        name="AppTheme.AppBarOverlay"
-        parent="ThemeOverlay.AppCompat.Dark.ActionBar"/>
-    <style
-        name="AppTheme.PopupOverlay"
-        parent="ThemeOverlay.AppCompat.Light"/>
 
-    <!--<style name="join_alert_dialog" parent="android:Theme.Dialog">-->
-        <!--<item name="android:windowIsFloating">true</item> -->
-        <!--<item name="android:background">@color/main_color_white</item>-->
+    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar"/>
 
-        <!--<item name="android:windowIsTranslucent">false</item>-->
-        <!--<item name="android:windowNoTitle">true</item>-->
-        <!--<item name="android:windowFullscreen">false</item>-->
-        <!--<item name="android:windowBackground">@color/main_color_test</item>-->
-        <!--<item name="android:windowBackground">@color/main_color_test</item>-->
-        <!--<item name="android:windowAnimationStyle">@null</item>-->
-        <!--<item name="android:backgroundDimEnabled">true</item>-->
-        <!--<item name="android:backgroundDimAmount">0.4</item>-->
-    <!--</style>-->
+    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light"/>
 
-    <!--<style name="AlertDialog" parent="@android:Theme.DeviceDefault.Light.Dialog">-->
-    <!--<style name="AlertDialog" parent="alert_dialog">-->
-    <!--&lt;!&ndash; 这里设置背景为透明，为了隐藏边框 &ndash;&gt;-->
-    <!--<item name="android:windowBackground">@android:color/transparent</item>-->
-    <!--<item name="android:windowNoTitle">true</item>-->
-    <!--&lt;!&ndash; 这里是修改顶部标题背景颜色，具体颜色自己定，可以是图片 &ndash;&gt;-->
-    <!--<item name="android:topDark">#ffffff</item>-->
-    <!--&lt;!&ndash; 这里是修改内容区域背景颜色 &ndash;&gt;-->
-    <!--<item name="android:centerDark">#ffffff</item>-->
-    <!--<item name="android:windowIsTranslucent">true</item>-->
-    <!--<item name="android:windowAnimationStyle">@+android:style/Animation.Translucent</item>-->
-    <!--</style>-->
 
-    <!--<style-->
-    <!--name="Base.Widget.Design.TabLayout"-->
-    <!--parent="android:Widget"-->
-    <!--tools:override="true">-->
-
-    <!--<item name="tabBackground">@drawable/tab_background_selector</item>-->
-    <!--&lt;!&ndash;<item name="tabIndicatorColor">#ff00ff</item>&ndash;&gt;-->
-    <!--&lt;!&ndash;<item name="tabIndicatorHeight">2dp</item>&ndash;&gt;-->
-    <!--&lt;!&ndash;<item name="tabTextSize">24sp</item>&ndash;&gt;-->
-    <!--</style>-->
-
-    <!-- tabLayout 字体大小 -->
-    <!--<style name="ShopTabLayoutTextStyle">-->
-        <!--<item name="android:textSize">15sp</item>-->
-    <!--</style>-->
+    <!-- 看图片 activity 背景透明 style (布局中不需要再次设置为透明) -->
+    <style name="PictureActivity.transparent" parent="AppTheme.NoActionBar">
+        <!-- 设置背景透明度及其颜色值(必须) -->
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <!-- 设置当前Activity是否透明(必须) -->
+        <item name="android:windowIsTranslucent">true</item>
+        <!-- 设置当前Activity进出方式 -->
+        <!--<item name="android:windowAnimationStyle">@android:style/Animation.Translucent</item>-->
+    </style>
 
 
     <!-- 进度条对话框主题 -->
@@ -86,9 +52,6 @@
     </style>
 
 
-    <!--********************************************************************************-->
-    <!--*****合伙人/代理商页面item 主题**************************************************-->
-    <!--********************************************************************************-->
     <style name="join_item_comm_style">
 
         <!-- 获取焦点，防止 editText 获取焦点 -->
@@ -104,114 +67,16 @@
         <item name="android:orientation">horizontal</item>
     </style>
 
-    <!-- 合伙人/代理商页面 标题文本 主题 -->
-    <!--<style name="join_item_comm_textView_style">-->
-        <!--<item name="android:layout_marginRight">50dp</item>-->
-        <!--<item name="android:textColor">@color/main_color_text_black</item>-->
-        <!--<item name="android:layout_width">wrap_content</item>-->
-        <!--<item name="android:layout_height">wrap_content</item>-->
-        <!--<item name="android:textSize">@dimen/join_item_textView_textSize</item>-->
-    <!--</style>-->
+    <style name="CustomTheme" parent="android:Theme.DeviceDefault" tools:ignore="NewApi">
+        <item name="cropImageStyle">@style/Widget.CropImageView</item>
+    </style>
 
 
-
-
-    <!-- 合伙人/代理商页面 输入框 主题 -->
-    <!--<item name="android:layout_marginLeft">50dp</item>-->
-    <!--<style name="join_item_comm_editText_style">-->
-        <!--<item name="android:gravity">center_vertical</item>-->
-        <!--<item name="android:layout_marginLeft">5dp</item>-->
-        <!--<item name="android:textColor">@color/main_color_text_gray</item>-->
-        <!--<item name="android:layout_width">match_parent</item>-->
-        <!--<item name="android:layout_height">match_parent</item>-->
-        <!--<item name="android:background">@null</item>-->
-        <!--<item name="android:maxLines">2</item>-->
-        <!--<item name="android:textSize">@dimen/join_item_editText_textSize</item>-->
-    <!--</style>-->
-
-
-    <!--********************************************************************************-->
-    <!--*****合伙人/代理商页面item 主题**************************************************-->
-    <!--********************************************************************************-->
-
-    <!--<style name="join_item_comm_editText_styl1" parent="join_item_comm_editText_style">-->
-    <!--<item name="android:gravity">center_vertical</item>-->
-    <!--</style>-->
-
-    <!--********************************************************************************-->
-    <!--*****合伙人/代理商页面 上传图片item 主题 *****************************************-->
-    <!--********************************************************************************-->
-    <!--<style name="join_item_img_style">-->
-        <!--<item name="android:background">@color/main_color_white</item>-->
-        <!--<item name="android:layout_width">match_parent</item>-->
-        <!--<item name="android:layout_height">wrap_content</item>-->
-        <!--<item name="android:orientation">horizontal</item>-->
-        <!--<item name="android:paddingTop">23dp</item>-->
-        <!--<item name="android:paddingRight">@dimen/join_right_left_margin</item>-->
-        <!--<item name="android:paddingLeft">@dimen/join_right_left_margin</item>-->
-    <!--</style>-->
-
-    <!--&lt;!&ndash; 合伙人/代理商页面 标题 主题 &ndash;&gt;-->
-    <!--<style name="join_item_img_textView_style" parent="join_item_comm_textView_style">-->
-        <!--<item name="android:layout_weight">1</item>-->
-        <!--<item name="android:layout_marginRight">0dp</item>-->
-    <!--</style>-->
-
-
-    <!--<item name="android:scaleType">centerInside</item>-->
-    <!-- 合伙人/代理商页面 上传图片 主题 -->
-    <!--<style name="join_item_img_pic_style">-->
-        <!--<item name="android:scaleType">centerInside</item>-->
-        <!--<item name="android:layout_marginLeft">14dp</item>-->
-        <!--<item name="android:layout_height">@dimen/join_item_idCard_img_height</item>-->
-        <!--<item name="android:layout_width">@dimen/join_item_idCard_img_width</item>-->
-        <!--&lt;!&ndash;<item name="android:layout_width">match_parent</item>&ndash;&gt;-->
-        <!--&lt;!&ndash;<item name="android:background">#232</item>&ndash;&gt;-->
-    <!--</style>-->
-    <!--********************************************************************************-->
-    <!--*****合伙人/代理商页面 上传图片item 主题 *****************************************-->
-    <!--********************************************************************************-->
-
-    <!--********************************************************************************-->
-    <!--*****主页面 item 主题 **********************************************************-->
-    <!--********************************************************************************-->
-    <!--<style name="main_item_style">-->
-        <!--<item name="android:layout_width">0dp</item>-->
-        <!--<item name="android:layout_height">wrap_content</item>-->
-        <!--<item name="android:layout_weight">1</item>-->
-        <!--<item name="android:gravity">center</item>-->
-        <!--<item name="android:orientation">vertical</item>-->
-    <!--</style>-->
-
-    <!--&lt;!&ndash; 主页面 item 图片主题 &ndash;&gt;-->
-    <!--<style name="main_item_img_style">-->
-        <!--<item name="android:layout_width">match_parent</item>-->
-        <!--<item name="android:layout_marginBottom">8dp</item>-->
-        <!--<item name="android:layout_height">wrap_content</item>-->
-        <!--<item name="android:gravity">center</item>-->
-    <!--</style>-->
-
-    <!-- 主页面 item 字体主题 -->
-    <!--<style name="main_item_text_style">-->
-        <!--<item name="android:maxLines">1</item>-->
-        <!--<item name="android:layout_width">match_parent</item>-->
-        <!--<item name="android:layout_height">wrap_content</item>-->
-        <!--<item name="android:gravity">center</item>-->
-        <!--<item name="android:textSize">@dimen/main_item_textSize</item>-->
-    <!--</style>-->
-    <!--********************************************************************************-->
-    <!--*****主页面 item 主题 **********************************************************-->
-    <!--********************************************************************************-->
     <!-- CropImageView -->
-    <!--<style name="CustomTheme" parent="android:Theme.DeviceDefault" tools:ignore="NewApi">-->
-        <!--<item name="cropImageStyle">@style/Widget.CropImageView</item>-->
-    <!--</style>-->
-
-    <!--<style name="Widget.CropImageView" parent="android:Widget">-->
-        <!--<item name="showThirds">true</item>-->
-        <!--<item name="showCircle">true</item>-->
-        <!--<item name="showHandles">always</item>-->
-        <!--<item name="highlightColor">@color/main_color_blue</item>-->
-    <!--</style>-->
-    <!-- CropImageView -->
+    <style name="Widget.CropImageView" parent="android:Widget">
+        <item name="showThirds">true</item>
+        <item name="showCircle">true</item>
+        <item name="showHandles">always</item>
+        <item name="highlightColor">@color/main_color_blue</item>
+    </style>
 </resources>

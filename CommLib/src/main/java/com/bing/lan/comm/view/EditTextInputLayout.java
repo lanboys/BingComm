@@ -80,6 +80,12 @@ public class EditTextInputLayout extends LinearLayout
 
         if (attrs != null) {
             TypedArray a = getContext().obtainStyledAttributes(attrs, R.styleable.EditTextInputLayout);
+
+            Drawable drawable = a.getDrawable(R.styleable.EditTextInputLayout_edit_layout_background);
+            if (drawable != null) {
+                setEditLayoutBackgroundDrawable(drawable);
+            }
+
             String edit_hint = a.getString(R.styleable.EditTextInputLayout_edit_hint);
             String edit_text = a.getString(R.styleable.EditTextInputLayout_edit_text);
 
@@ -114,6 +120,8 @@ public class EditTextInputLayout extends LinearLayout
             float title_text_size = a.getDimension(R.styleable.EditTextInputLayout_title_text_size, -1.0f);
             float edit_text_size = a.getDimension(R.styleable.EditTextInputLayout_edit_text_size, -1.0f);
 
+            float title_paddingLeft = a.getDimension(R.styleable.EditTextInputLayout_edit_paddingLeft, -1.0f);
+            float title_paddingRight = a.getDimension(R.styleable.EditTextInputLayout_edit_paddingRight, -1.0f);
             int edit_gravity = a.getInt(R.styleable.EditTextInputLayout_edit_gravity, -1);
 
             int title_color = a.getColor(R.styleable.EditTextInputLayout_title_color, -1);
@@ -129,6 +137,13 @@ public class EditTextInputLayout extends LinearLayout
             }
             if (edit_text_size != -1.0f) {
                 mEdContent.setTextSize(TypedValue.COMPLEX_UNIT_PX, edit_text_size);
+            }
+
+            if (title_paddingLeft != -1.0f) {
+                setEditPadding((int) title_paddingLeft, 0, 0, 0);
+            }
+            if (title_paddingRight != -1.0f) {
+                setEditPadding(0, 0, (int) title_paddingRight, 0);
             }
 
             if (title_marginLeft != -1.0f) {
@@ -148,10 +163,10 @@ public class EditTextInputLayout extends LinearLayout
                 setEditHintColor(edit_hint_color);
             }
             if (edit_color != -1) {
-                setEditColor(edit_hint_color);
+                setEditColor(edit_color);
             }
             if (title_color != -1) {
-                setTitleColor(edit_hint_color);
+                setTitleColor(title_color);
             }
 
             if (edit_gravity != -1) {
@@ -169,7 +184,7 @@ public class EditTextInputLayout extends LinearLayout
 
             setEditMaxLength(edit_maxLength);
             setEditDigits(edit_digits);
-            setEditEnable(mIsEditEnable);
+            setEditEnabled(mIsEditEnable);
             setLineVisibility(line_show ? VISIBLE : GONE);
 
             if (image_visibility != -1) {
@@ -272,6 +287,14 @@ public class EditTextInputLayout extends LinearLayout
         layoutParams.height = height;
     }
 
+    public void setEditLayoutBackgroundDrawable(Drawable background) {
+        mLlContainer.setBackground(background);
+    }
+
+    public void setEditLayoutBackgroundRes(@DrawableRes int resId) {
+        mLlContainer.setBackgroundResource(resId);
+    }
+
     public void setRightImagePadding(int left, int top, int right, int bottom) {
         mIvImage.setPadding(left, top, right, bottom);
     }
@@ -286,6 +309,11 @@ public class EditTextInputLayout extends LinearLayout
         layoutParams.setMargins(left, top, right, bottom);
     }
 
+    public void setTitleWidth(int width) {
+        LinearLayout.LayoutParams layoutParams = (LayoutParams) mTvTitle.getLayoutParams();
+        layoutParams.width = width;
+    }
+
     public void setRightImageHeight(int height) {
         LinearLayout.LayoutParams layoutParams = (LayoutParams) mIvImage.getLayoutParams();
         layoutParams.height = height;
@@ -294,6 +322,10 @@ public class EditTextInputLayout extends LinearLayout
     public void setRightImageWidth(int width) {
         LinearLayout.LayoutParams layoutParams = (LayoutParams) mIvImage.getLayoutParams();
         layoutParams.width = width;
+    }
+
+    public void setEditPadding(int left, int top, int right, int bottom) {
+        mEdContent.setPadding(left, top, right, bottom);
     }
 
     public void setEditMaxLength(int editMaxLength) {
@@ -344,12 +376,6 @@ public class EditTextInputLayout extends LinearLayout
 
         if (mTvTitle != null) {
             mTvTitle.setVisibility(visibility);
-        }
-    }
-
-    public void setEditEnabled(boolean enabled) {
-        if (mEdContent != null) {
-            mEdContent.setEnabled(false);
         }
     }
 
@@ -434,6 +460,10 @@ public class EditTextInputLayout extends LinearLayout
         }
     }
 
+    public TextView getTitleTextView() {
+        return mTvTitle;
+    }
+
     public boolean isEditTextEmpty() {
         return TextUtils.isEmpty(getEditContent());
     }
@@ -442,7 +472,7 @@ public class EditTextInputLayout extends LinearLayout
         return mIsEditEnable;
     }
 
-    public void setEditEnable(boolean editEnable) {
+    public void setEditEnabled(boolean editEnable) {
         mIsEditEnable = editEnable;
         mEdContent.setEnabled(mIsEditEnable);
     }
@@ -537,7 +567,7 @@ public class EditTextInputLayout extends LinearLayout
             if (mRegExpValidator != null) {
                 return mRegExpValidator.validateEditRegExp(getId(), getEditContent());
             } else if (mRegExpType != TYPE_NO_TYPE) {
-                return validateEditContentRegExp();
+                return validateEditContentRegExp(mRegExpType);
             } else {
                 throw new RuntimeException("请设置校验器或者校验类型再进行校验");
             }
@@ -549,10 +579,12 @@ public class EditTextInputLayout extends LinearLayout
     /**
      * 默认的正则校验器
      */
-    public boolean validateEditContentRegExp() {
-        switch (mRegExpType) {
-            case RegExpType.TYPE_PHONE:
+    private boolean validateEditContentRegExp(@RegExpType.Type int regExpType) {
+        switch (regExpType) {
+            case RegExpType.TYPE_MOBILE_PHONE:
                 return RegExpUtil.checkPhoneNum(getEditContent());
+            case RegExpType.TYPE_TELEPHONE:
+                return RegExpUtil.checkTelephone(getEditContent());
             case RegExpType.TYPE_PASSWORD:
                 return RegExpUtil.checkPassword(getEditContent());
             case RegExpType.TYPE_ID_CARD:
@@ -561,8 +593,13 @@ public class EditTextInputLayout extends LinearLayout
                 return RegExpUtil.checkVcode(getEditContent());
             case RegExpType.TYPE_NICKNAME:
                 return RegExpUtil.checkNickName(getEditContent());
+            case RegExpType.TYPE_NOT_EMPTY:
+                return RegExpUtil.checkNotEmpty(getEditContent());
+            case RegExpType.TYPE_NO_TYPE:
+                break;
+            default:
+                return false;
         }
-
         return false;
     }
 
@@ -591,19 +628,23 @@ public class EditTextInputLayout extends LinearLayout
     public static class RegExpType {
 
         public static final int TYPE_NO_TYPE = -1;
-        public static final int TYPE_PHONE = 0; //手机号
-        public static final int TYPE_PASSWORD = 1;  //密码
-        public static final int TYPE_ID_CARD = 2;  //身份证
-        public static final int TYPE_VCODE = 3;  //验证码
-        public static final int TYPE_NICKNAME = 4;  //昵称
+        public static final int TYPE_MOBILE_PHONE = 0; //手机号
+        public static final int TYPE_TELEPHONE = 1; //座机号
+        public static final int TYPE_PASSWORD = 2;  //密码
+        public static final int TYPE_ID_CARD = 3;  //身份证
+        public static final int TYPE_VCODE = 4;  //验证码
+        public static final int TYPE_NICKNAME = 5;  //昵称
+        public static final int TYPE_NOT_EMPTY = 6;  //非空
 
         @IntDef({
                 TYPE_NO_TYPE,
-                TYPE_PHONE,
+                TYPE_MOBILE_PHONE,
+                TYPE_TELEPHONE,
                 TYPE_PASSWORD,
                 TYPE_ID_CARD,
                 TYPE_VCODE,
-                TYPE_NICKNAME
+                TYPE_NICKNAME,
+                TYPE_NOT_EMPTY
         })
         @Retention(RetentionPolicy.SOURCE)
         public @interface Type {

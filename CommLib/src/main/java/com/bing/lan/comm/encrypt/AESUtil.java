@@ -14,6 +14,7 @@ public class AESUtil {
 
     //密钥
     public static final String KEY = "1234567891234567";
+    private final static String HEX = "0123456789ABCDEF";
 
     /**
      * 加密
@@ -101,8 +102,6 @@ public class AESUtil {
         }
         return result.toString();
     }
-
-    private final static String HEX = "0123456789ABCDEF";
 
     private static void appendHex(StringBuffer sb, byte b) {
         sb.append(HEX.charAt((b >> 4) & 0x0f)).append(HEX.charAt(b & 0x0f));

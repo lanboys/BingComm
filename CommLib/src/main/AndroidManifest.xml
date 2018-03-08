@@ -10,6 +10,11 @@
                  android:supportsRtl="true"
     >
 
+
+
+    <meta-data android:name="com.bing.lan.comm.load.GlideCache"
+               android:value="GlideModule"/>
+
     </application>
 
 </manifest>

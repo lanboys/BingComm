@@ -9,10 +9,14 @@ import android.view.Gravity;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.soundcloud.android.crop.Crop;
+
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+
+import static android.app.Activity.RESULT_OK;
 
 /**
  * Author: 蓝兵
@@ -56,7 +60,7 @@ public class PhotoSelectUtil {
         final PhotoSelectPopupWindow popupWindow = new PhotoSelectPopupWindow(mContext);
         popupWindow.setOnItemClickListener(new PhotoSelectPopupWindow.OnItemClickListener() {
             @Override
-            public void onItemClickListener(@PhotoSelectSource.PhotoFlavour int type) {
+            public void onItemClickListener(@PhotoSelectSource int type) {
                 if (type == PhotoSelectSource.SELECT_CAMERA) {
                     //拍照
                     dispatchTakePictureIntent();
@@ -98,19 +102,19 @@ public class PhotoSelectUtil {
     public void onSelectActivityResult(int requestCode, int resultCode, Intent data) {
 
         if (resultCode == Activity.RESULT_OK) {
-            // if (requestCode == REQUEST_IMAGE_CAPTURE) {
-            //     //系统拍照  界面返回
-            //     beginCrop(mCurrentPhotoUri);
-            // } else if (requestCode == Crop.REQUEST_PICK) {
-            //     //系统选择照片  界面返回
-            //     beginCrop(data.getData());
-            // }
+            if (requestCode == REQUEST_IMAGE_CAPTURE) {
+                //系统拍照  界面返回
+                beginCrop(mCurrentPhotoUri);
+            } else if (requestCode == Crop.REQUEST_PICK) {
+                //系统选择照片  界面返回
+                beginCrop(data.getData());
+            }
         }
 
         //裁剪图片 界面返回
-        // if (requestCode == Crop.REQUEST_CROP) {
-        //     handleCrop(resultCode, data);
-        // }
+        if (requestCode == Crop.REQUEST_CROP) {
+            handleCrop(resultCode, data);
+        }
     }
 
     //进入裁剪页面
@@ -131,21 +135,21 @@ public class PhotoSelectUtil {
     }
 
     private void handleCrop(int resultCode, Intent result) {
-        // if (resultCode == RESULT_OK) {
-        //     mImageView.setImageDrawable(null);
-        //
-        //     Uri uri = Crop.getOutput(result);
-        //     File file = new File(uri.getPath());
-        //
-        //     mImageView.setImageURI(uri);
-        //
-        //     //回调
-        //     if (mUploadListener != null) {
-        //         mUploadListener.onPhotoSelect(mImageView, file);
-        //     }
-        // } else if (resultCode == Crop.RESULT_ERROR) {
-        //     Toast.makeText(mContext, Crop.getError(result).getMessage(), Toast.LENGTH_SHORT).show();
-        // }
+        if (resultCode == RESULT_OK) {
+            mImageView.setImageDrawable(null);
+
+            Uri uri = Crop.getOutput(result);
+            File file = new File(uri.getPath());
+
+            mImageView.setImageURI(uri);
+
+            //回调
+            if (mUploadListener != null) {
+                mUploadListener.onPhotoSelect(mImageView, file);
+            }
+        } else if (resultCode == Crop.RESULT_ERROR) {
+            Toast.makeText(mContext, Crop.getError(result).getMessage(), Toast.LENGTH_SHORT).show();
+        }
     }
 
     // 创建图片路径
@@ -165,6 +169,6 @@ public class PhotoSelectUtil {
     // 选择头像
     private void selectAvatarFromAlbum() {
         //mImageView.setImageDrawable(null);
-        // Crop.pickImage(mContext);
+        Crop.pickImage(mContext);
     }
 }

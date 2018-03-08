@@ -1,6 +1,7 @@
 package com.bing.lan.comm.app;
 
 import android.app.Activity;
+import android.app.AppOpsManager;
 import android.app.Application;
 import android.content.ComponentName;
 import android.content.Context;
@@ -20,7 +21,9 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Process;
 import android.os.SystemClock;
+import android.provider.Settings;
 import android.support.annotation.RawRes;
+import android.support.v4.content.FileProvider;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.text.format.Formatter;
@@ -29,14 +32,12 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.bing.lan.comm.utils.FileUtil;
-import com.bing.lan.comm.utils.IOUtils;
 import com.bing.lan.comm.utils.LogUtil;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -50,7 +51,7 @@ public class AppUtil {
 
     static boolean LOG_DEBUG = false;
     // Android监听连续点击次数代码实现
-    static long[] mHits;
+    private static long[] mHits;
     /* global application parameter */
     private static Context sContext;
     private static Handler sHandler;
@@ -211,31 +212,6 @@ public class AppUtil {
         return getIntByRandom() % 2 == 0;
     }
 
-    public static String loadAssetsJson(String fileName) {
-
-        AssetManager assets = getAssets();
-        BufferedReader bfr = null;
-        try {
-
-            InputStreamReader isr = new InputStreamReader(assets.open(fileName), "utf-8");
-            //从assets获取json文件
-            bfr = new BufferedReader(isr);
-            String line;
-            StringBuilder stringBuilder = new StringBuilder();
-            while ((line = bfr.readLine()) != null) {
-                stringBuilder.append(line);
-            }//将JSON数据转化为字符串
-            Log.d("qh", stringBuilder.toString());
-            return stringBuilder.toString();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            // assets.close();不能close,不然后面的资源就解析不了了
-            IOUtils.close(bfr);
-        }
-        return "";
-    }
-
     public static void startActivity(Context c, Class<? extends Activity> clazz,
             boolean isFinish, boolean addFlags) {
 
@@ -254,10 +230,6 @@ public class AppUtil {
         }
     }
 
-    public static void showToast(Context c, String msg) {
-        Toast.makeText(c, msg, Toast.LENGTH_SHORT).show();
-    }
-
     /**
      * 安全执行任务
      *
@@ -269,10 +241,11 @@ public class AppUtil {
 
     public static void postTaskSafeDelay(Runnable runnable, long delayMillis) {
         int currId = Process.myTid();
-        if (currId == getMainThreadId() && delayMillis == 0)
+        if (currId == getMainThreadId() && delayMillis == 0) {
             runnable.run();
-        else
+        } else {
             getMainHandler().postDelayed(runnable, delayMillis);
+        }
     }
 
     public static int sp2px(float spValue) {
@@ -335,10 +308,6 @@ public class AppUtil {
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
         }
-    }
-
-    public static File getCacheFile(String name) {
-        return new File(getCacheDir(), name);
     }
 
     public static Intent createShareIntent(String shareTitle,
@@ -510,18 +479,17 @@ public class AppUtil {
     /**
      * 启动app详情界面
      *
-     * @param activity
-     * @param apkPackagename
+     * @param context
      */
-    public static void detailApp(Activity activity, String apkPackagename) {
+    public static void goToDetailApp(Context context) {
        /* <action android:name="android.settings.APPLICATION_DETAILS_SETTINGS" />
         <category android:name="android.intent.category.DEFAULT" />
         <ta android:scheme="package" />*/
         Intent intent = new Intent();
         intent.setAction("android.settings.APPLICATION_DETAILS_SETTINGS");
         intent.addCategory("android.intent.category.DEFAULT");
-        intent.setData(Uri.parse("package:" + apkPackagename));
-        activity.startActivity(intent);
+        intent.setData(Uri.parse("package:" + context.getPackageName()));
+        context.startActivity(intent);
     }
 
     /**
@@ -733,11 +701,30 @@ public class AppUtil {
      * @param context
      * @param apkFile
      */
-    public static void installApp(Context context, File apkFile) {
-        Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.setFlags(FLAG_ACTIVITY_NEW_TASK);
-        intent.setDataAndType(Uri.fromFile(apkFile), "application/vnd.android.package-archive");
-        context.startActivity(intent);
+    public static void installApp(Context context, File apkFile, String authority) {
+
+        try {
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setFlags(FLAG_ACTIVITY_NEW_TASK);
+            Uri uri;
+            if (Build.VERSION.SDK_INT >= 24) {
+                uri = FileProvider.getUriForFile(context, authority, apkFile);
+            } else {
+                uri = Uri.fromFile(apkFile);
+            }
+            // http://blog.csdn.net/y505772146/article/details/55255344
+            // https://stackoverflow.com/questions/5503487/android-failed-to-open-zip-archive
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            intent.setDataAndType(uri, "application/vnd.android.package-archive");
+            context.startActivity(intent);
+        } catch (Exception e) {
+            log.e("installApp():  " + e.getLocalizedMessage());
+        }
+
+        // Intent intent = new Intent(Intent.ACTION_VIEW);
+        // intent.setFlags(FLAG_ACTIVITY_NEW_TASK);
+        // intent.setDataAndType(Uri.fromFile(apkFile), "application/vnd.android.package-archive");
+        // context.startActivity(intent);
     }
 
     /**
@@ -749,6 +736,45 @@ public class AppUtil {
     public static void openApp(Context context, String packageName) {
         Intent intent = context.getPackageManager().getLaunchIntentForPackage(packageName);
         context.startActivity(intent);
+    }
+
+    public static boolean isNotificationEnabled(Context context) {
+
+        try {
+            //http://blog.csdn.net/jijiaxin1989/article/details/54142324
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
+                AppOpsManager mAppOps = (AppOpsManager) context.getSystemService(Context.APP_OPS_SERVICE);
+                ApplicationInfo appInfo = context.getApplicationInfo();
+                String pkg = context.getApplicationContext().getPackageName();
+                int uid = appInfo.uid;
+
+                Class appOpsClass = Class.forName(AppOpsManager.class.getName());
+                Method checkOpNoThrowMethod = appOpsClass.getMethod("checkOpNoThrow", Integer.TYPE, Integer.TYPE, String.class);
+                Field opPostNotificationValue = appOpsClass.getDeclaredField("OP_POST_NOTIFICATION");
+
+                int value = (Integer) opPostNotificationValue.get(Integer.class);
+                return ((Integer) checkOpNoThrowMethod.invoke(mAppOps, value, uid, pkg) == AppOpsManager.MODE_ALLOWED);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * 启动app详情界面
+     */
+    public static void goToSetting(Context context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.BASE) {
+            // 进入设置系统应用权限界面
+            Intent intent = new Intent(Settings.ACTION_SETTINGS);
+            context.startActivity(intent);
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {// 运行系统在5.x环境使用
+            //Intent intent = new Intent(Settings.ACTION_SETTINGS);
+            Intent intent = new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS);
+
+            context.startActivity(intent);
+        }
     }
 
     /**
