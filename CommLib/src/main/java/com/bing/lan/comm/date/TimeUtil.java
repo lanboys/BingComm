@@ -2,6 +2,8 @@ package com.bing.lan.comm.date;
 
 import android.text.TextUtils;
 
+import com.bing.lan.comm.utils.LogUtil;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -16,12 +18,18 @@ import java.util.Date;
 public class TimeUtil {
 
     public enum TimePattern {
-        ALL("yyyy-MM-dd HH:mm:ss"), //年月日时分秒
-        YEAR_MONTH_DAY("yyyy-MM-dd"), //年月日
-        HOURS_MINS("HH:mm"), //时分
-        MONTH_DAY_HOUR_MIN("MM-dd HH:mm"), //月日时分
-        YEAR_MONTH("yyyy-MM"), //年月
-        YEAR_MONTH_DAY_HOUR_MIN("yyyy-MM-dd HH:mm"); //年月日时分
+        //年月日时分秒
+        ALL("yyyy-MM-dd HH:mm:ss"),
+        //年月日
+        YEAR_MONTH_DAY("yyyy-MM-dd"),
+        //时分
+        HOURS_MIN("HH:mm"),
+        //月日时分
+        MONTH_DAY_HOUR_MIN("MM-dd HH:mm"),
+        //年月
+        YEAR_MONTH("yyyy-MM"),
+        //年月日时分
+        YEAR_MONTH_DAY_HOUR_MIN("yyyy-MM-dd HH:mm");
 
         private final String pattern;
 
@@ -33,6 +41,8 @@ public class TimeUtil {
             return pattern;
         }
     }
+
+    protected static final LogUtil log = LogUtil.getLogUtil(TimeUtil.class, LogUtil.LOG_VERBOSE);
 
     /**
      * 转换成时间
@@ -54,15 +64,58 @@ public class TimeUtil {
         return "";
     }
 
+    public static boolean diffTime(String data1, String data2) {
+        try {
+            long time1 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(data1).getTime();
+            long time2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(data2).getTime();
+            if (time1 >= time2) {
+                return true;
+            }
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     /**
      * 转换成时间
      */
     public static String timeByPattern(Long originTime, TimePattern pattern) {
-        if (originTime != 0L) {
-            SimpleDateFormat format = new SimpleDateFormat(pattern.getTimePattern());
-            return format.format(originTime);
+        try {
+            if (originTime != 0L) {
+                SimpleDateFormat format = new SimpleDateFormat(pattern.getTimePattern());
+                return format.format(originTime);
+            }
+        } catch (Exception e) {
+            log.e("timeByPattern():  " + e.getLocalizedMessage());
         }
         return "";
+    }
+
+    /**
+     * String转为时间戳
+     */
+    public static long longTime(String time) {
+        SimpleDateFormat sd = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        try {
+            return sd.parse(time).getTime();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    /**
+     * String转为时间戳
+     */
+    public static long longTime(String time, TimePattern pattern) {
+        SimpleDateFormat sd = new SimpleDateFormat(pattern.getTimePattern());
+        try {
+            return sd.parse(time).getTime();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return 0;
     }
 
     /**
@@ -78,6 +131,11 @@ public class TimeUtil {
             e.printStackTrace();
         }
         return newTime;
+    }
+
+    public static String allTime(Date date) {
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        return format.format(date);
     }
 
     /**

@@ -25,11 +25,14 @@ import com.bing.lan.comm.dialog.RxDialog;
 import com.bing.lan.comm.utils.BitmapUtil;
 import com.bing.lan.comm.utils.FileUtil;
 import com.bing.lan.comm.utils.LogUtil;
+import com.soundcloud.android.crop.Crop;
 
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+
+import static android.app.Activity.RESULT_OK;
 
 /**
  * Author: 蓝兵
@@ -51,7 +54,12 @@ public class PhotoSelectCropUtil {
     private static final int REQUEST_IMAGE_CAPTURE = 891;
     private static final int REQUEST_IMAGE_PICK = 8921;
 
+    private static final int ACTION_CAMERA = 1;
+    private static final int ACTION_ALBUM = 2;
+    private static final int ACTION_OTHER = -1;
+
     protected final LogUtil log = LogUtil.getLogUtil(getClass(), LogUtil.LOG_VERBOSE);
+    protected static final LogUtil log1 = LogUtil.getLogUtil(PhotoSelectCropUtil.class, LogUtil.LOG_VERBOSE);
     private Activity mContext;
     private ImageView mPhotoImageView;
     private Uri mCurrentPhotoUri;
@@ -143,7 +151,7 @@ public class PhotoSelectCropUtil {
         final PhotoSelectPopupWindow popupWindow = new PhotoSelectPopupWindow(mContext);
         popupWindow.setOnItemClickListener(new PhotoSelectPopupWindow.OnItemClickListener() {
             @Override
-            public void onItemClickListener(@PhotoSelectSource.PhotoFlavour int type) {
+            public void onItemClickListener(@PhotoSelectSource int type) {
                 if (type == PhotoSelectSource.SELECT_CAMERA) {
                     //拍照
                     selectPhotoFromCamera(imageView);
@@ -178,7 +186,7 @@ public class PhotoSelectCropUtil {
                         //contentValues.put(MediaStore.Images.Media.MIME_TYPE, "image/jpg");
                         photoUri = mContext.getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues);
                     } else {
-                        //Uri photoUri = FileProvider.getUriForFile(mContext, "com.juzhongke.jzkmarketing.fileprovider", photoFile);
+                        //Uri photoUri = FileProvider.getUriForFile(mContext, FILE_PROVIDER, photoFile);
                         photoUri = Uri.fromFile(photoFile);
                     }
                     takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
@@ -198,33 +206,35 @@ public class PhotoSelectCropUtil {
         ImageView imageView = mPhotoImageView;
 
         if (resultCode == Activity.RESULT_OK) {
-            // if (requestCode == REQUEST_IMAGE_CAPTURE) {
-            //     //系统拍照  界面返回
-            //     //log.e("onSelectActivityResult(): mCurrentPhotoUri---" + mCurrentPhotoUri);
-            //     //file:///storage/emulated/0/Android/data/com.bing.lan.comm/files/Pictures/JPEG_20170426_144058_435020664.jpg
-            //     isCapture = true;
-            //
-            //     if (isCrop) {
-            //         beginCrop(mCurrentPhotoUri, 1);
-            //     } else {
-            //         handleCapture(imageView, mCurrentPhotoUri, 1);
-            //     }
-            // } else if (requestCode == Crop.REQUEST_PICK || requestCode == REQUEST_IMAGE_PICK) {
-            //     //系统选择照片  界面返回
-            //     isCapture = false;
-            //
-            //     if (isCrop) {
-            //         beginCrop(data.getData(), 2);
-            //     } else {
-            //         handlePick(imageView, data.getData(), 2);
-            //     }
-            // }
+            if (requestCode == REQUEST_IMAGE_CAPTURE) {
+                //系统拍照  界面返回
+                //log.e("onSelectActivityResult(): mCurrentPhotoUri---" + mCurrentPhotoUri);
+                //file:///storage/emulated/0/Android/data/com.bing.lan.comm/files/Pictures/JPEG_20170426_144058_435020664.jpg
+                isCapture = true;
+
+                if (isCrop) {
+                    beginCrop(mCurrentPhotoUri, ACTION_CAMERA);
+                } else {
+                    handleCapture(imageView, mCurrentPhotoUri, ACTION_CAMERA);
+                }
+            } else if (requestCode == Crop.REQUEST_PICK || requestCode == REQUEST_IMAGE_PICK) {
+                //系统选择照片  界面返回
+                isCapture = false;
+
+                if (isCrop) {
+                    beginCrop(data.getData(), ACTION_ALBUM);
+                } else {
+                    handlePick(imageView, data.getData(), ACTION_ALBUM);
+                }
+            }
         }
 
+        // 流程：启动相机/相册 --> 拍摄/选中照片 --> 返回主页面 --> 需要裁剪 --> 直接进入裁剪界面 --> 裁剪完成再次返回主页面
+
         //裁剪图片 界面返回
-        // if (requestCode == Crop.REQUEST_CROP) {
-        //     handleCrop(imageView, resultCode, data);
-        // }
+        if (requestCode == Crop.REQUEST_CROP) {
+            handleCrop(imageView, resultCode, data);
+        }
     }
 
     //进入裁剪页面
@@ -235,7 +245,7 @@ public class PhotoSelectCropUtil {
 
         try {
             //拍照 裁剪 返回 原路径加后缀保存
-            if (action == 1) {
+            if (action == ACTION_CAMERA) {
                 String path = source.getPath();
                 if (!isCapture) {
                     final File file1 = getAbsolutePathFile(mContext, source);
@@ -262,7 +272,7 @@ public class PhotoSelectCropUtil {
         // log.e("beginCrop()---destination--Uri: " + destination);//   file:///data/user/0/com.bing.lan.comm/cache/cropped
         // log.e("beginCrop()--destination--file: " + file);//    /data/user/0/com.bing.lan.comm/cache/cropped
 
-        // Crop.of(source, destination)/*.asSquare()*/.start(mContext);
+        Crop.of(source, destination)/*.asSquare()*/.start(mContext);
     }
 
     //拍照
@@ -338,24 +348,27 @@ public class PhotoSelectCropUtil {
     }
 
     private void handleCrop(ImageView mImageView, int resultCode, Intent result) {
-        // if (resultCode == RESULT_OK) {
-        //     Uri uri = Crop.getOutput(result);
-        //     File file = getAbsolutePathFile(mContext, uri);
-        //     checkPhotoSize(mImageView, file, 3);
-        // } else if (resultCode == Crop.RESULT_ERROR) {
-        //     Toast.makeText(mContext, Crop.getError(result).getMessage(), Toast.LENGTH_SHORT).show();
-        // }
+
+        if (resultCode == RESULT_OK) {
+
+            Uri uri = Crop.getOutput(result);
+            File file = getAbsolutePathFile(mContext, uri);
+            checkPhotoSize(mImageView, file, ACTION_OTHER);
+        } else if (resultCode == Crop.RESULT_ERROR) {
+
+            Toast.makeText(mContext, Crop.getError(result).getMessage(), Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void checkPhotoSize(@NonNull final ImageView mImageView, final @NonNull File sourceFile, final int action) {
 
-        // BitmapFactory.Options opts1 = new BitmapFactory.Options();
-        // opts1.inJustDecodeBounds = true;
-        // BitmapFactory.decodeFile(sourceFile.getAbsolutePath(), opts1);
-        // opts1.inSampleSize = 8;//缩小四倍
-        // opts1.inPreferredConfig = Bitmap.Config.RGB_565;
+        // TODO: 2017/8/19 700 600 尺寸不对
+        BitmapUtil.BitmapResult bitmapResult = BitmapUtil.decodeSampledBitmapFromFile(sourceFile.getAbsolutePath(),
+                mImageView.getWidth(), mImageView.getHeight());
+        final Bitmap bitmap = bitmapResult.bitmap;
+        // mImageView.getMeasuredWidth(), mImageView.getMeasuredHeight());
 
-        final Bitmap bitmap = BitmapUtil.decodeSampledBitmapFromFile(sourceFile.getAbsolutePath(), 700, 600);
+        // final Bitmap bitmap = BitmapUtil.decodeSampledBitmapFromFile(sourceFile.getAbsolutePath(), 700, 600);
         mImageView.setImageBitmap(bitmap);
         calculateBitmapSize(bitmap);
 
@@ -363,8 +376,6 @@ public class PhotoSelectCropUtil {
             mProgressDrawable.stop();
         }
 
-        //  height=140dp
-        //  width=245dp
         long fileSize = 0;
         try {
             fileSize = FileUtil.getFileSize(sourceFile);
@@ -381,7 +392,7 @@ public class PhotoSelectCropUtil {
                     File newFile = null;
 
                     //相册选中的照片 压缩后保存路径更改
-                    if (action == 2) {
+                    if (action == ACTION_ALBUM) {
                         newFile = createImageFile(mContext, "small");
                     }
 
@@ -412,9 +423,8 @@ public class PhotoSelectCropUtil {
         log.e("calculateBitmapSize(): 图片bitmap的大小:" + fileSize);
     }
 
-    private void returnResult(final ImageView mImageView, final File sourceFile) {
+    private synchronized void returnResult(final ImageView mImageView, final File sourceFile) {
 
-        //Bitmap thumbnail = BitmapUtil.getThumbnail(bitmap, AppUtil.dp2px(245), AppUtil.dp2px(140));
         mContext.runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -423,6 +433,10 @@ public class PhotoSelectCropUtil {
                 if (mPhotoSelectListener != null) {
                     mPhotoSelectListener.onPhotoSelect(mImageView, sourceFile);
                 }
+
+                // 最后通知图库更新
+                mContext.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE,
+                        Uri.fromFile(sourceFile)));
             }
         });
     }
@@ -435,10 +449,16 @@ public class PhotoSelectCropUtil {
             imageFileName += "_" + str + "_";
         }
 
+        //File storageDir = context.getExternalFilesDir("PhotoSelectCache");
         //File storageDir = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-        File storageDir = context.getExternalCacheDir();//放在缓存中
+        File storageDir = context.getExternalCacheDir();//放在缓存中--->抛异常，必须主动生成目录会报错
+        storageDir = new File(storageDir, "PhotoSelectCache");
 
-        File image = null;
+        if (!storageDir.mkdirs() && (!storageDir.exists() || !storageDir.isDirectory())) {
+            return null;
+        }
+
+        File image;
         try {
             image = File.createTempFile(
                     imageFileName,      /* prefix 文件名前缀*/
@@ -446,11 +466,16 @@ public class PhotoSelectCropUtil {
                     storageDir          /* directory 路径*/
             );
         } catch (IOException e) {
-            e.printStackTrace();
-            image = new File(context.getCacheDir(), "pic/" + imageFileName + ".jpg");
+            log1.e("createImageFile():  ", e);
+
+            File cacheDir = new File(context.getCacheDir(), "pic");
+            if (!cacheDir.mkdirs() && (!cacheDir.exists() || !cacheDir.isDirectory())) {
+                return null;
+            }
+            image = new File(cacheDir, imageFileName + ".jpg");
         }
 
-        //log.e("createImageFile() 图片路径: " + image);
+        log1.e("createImageFile() 图片路径: " + image);
         return image;
     }
 
@@ -477,7 +502,6 @@ public class PhotoSelectCropUtil {
     }
 
     public static File getAbsolutePathFile(final Context context, final Uri uri) {
-        //File file = CropUtil.getFromMediaUri(context, context.getContentResolver(), uri);
         return GetPathUtil.getFilePathByUri(context, uri);
     }
 }

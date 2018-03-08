@@ -14,7 +14,6 @@ import com.bing.lan.comm.utils.SoftInputUtil;
  * 过滤
  */
 
-
 public class CloseSoftInputActivity extends AppCompatActivity {
 
     @Override
@@ -56,8 +55,9 @@ public class CloseSoftInputActivity extends AppCompatActivity {
             }
         }
 
-        if (views == null || views.length == 0)
+        if (views == null || views.length == 0) {
             return false;
+        }
 
         for (View view : views) {
             boolean touchingView = isTouchingView(view, ev);
@@ -92,5 +92,16 @@ public class CloseSoftInputActivity extends AppCompatActivity {
     protected int[] filterHideSoftViewsByIds() {
         //return new int[]{R.id.btn_code};
         return null;
+    }
+
+    protected <T> T checkNotNull(T value) {
+        return checkNotNull(value, value + "为空异常");
+    }
+
+    protected <T> T checkNotNull(T value, String message) {
+        if (value == null) {
+            throw new NullPointerException(message);
+        }
+        return value;
     }
 }

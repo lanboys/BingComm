@@ -77,6 +77,6 @@ public class PhotoSelectPopupWindow extends PopupWindow implements View.OnClickL
 
     public interface OnItemClickListener {
 
-        void onItemClickListener(@PhotoSelectSource.PhotoFlavour int type);
+        void onItemClickListener(@PhotoSelectSource int type);
     }
 }

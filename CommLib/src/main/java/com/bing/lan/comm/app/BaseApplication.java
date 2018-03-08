@@ -9,9 +9,11 @@ import android.net.ConnectivityManager;
 import android.support.annotation.NonNull;
 import android.support.multidex.MultiDex;
 
+import com.bing.lan.comm.R;
 import com.bing.lan.comm.refresh.header.JzkHeader;
 import com.bing.lan.comm.utils.LogUtil;
 import com.bing.lan.comm.utils.NetworkUtil;
+import com.ganxin.library.LoadDataLayout;
 import com.scwang.smartrefresh.layout.SmartRefreshLayout;
 import com.scwang.smartrefresh.layout.api.DefaultRefreshFooterCreater;
 import com.scwang.smartrefresh.layout.api.DefaultRefreshHeaderCreater;
@@ -20,6 +22,7 @@ import com.scwang.smartrefresh.layout.api.RefreshHeader;
 import com.scwang.smartrefresh.layout.api.RefreshLayout;
 import com.scwang.smartrefresh.layout.constant.SpinnerStyle;
 import com.scwang.smartrefresh.layout.footer.ClassicsFooter;
+import com.scwang.smartrefresh.layout.header.ClassicsHeader;
 
 /**
  * @author 蓝兵
@@ -80,29 +83,31 @@ public abstract class BaseApplication extends Application {
 
         // DownloadManager.init(ApiManager.getOkHttpClient(), this.getExternalFilesDir("download"));
 
-        // LoadDataLayout.getBuilder()
-        //         .setLoadingText(getString(R.string.custom_loading_text))
-        //         .setLoadingTextSize(16)
-        //         .setLoadingTextColor(R.color.colorPrimary)
-        //         //.setLoadingViewLayoutId(R.layout.custom_loading_view) //如果设置了自定义loading视图,上面三个方法失效
-        //         .setEmptyImgId(R.drawable.ic_empty)
-        //         .setErrorImgId(R.drawable.ic_error)
-        //         .setNoNetWorkImgId(R.drawable.ic_no_network)
-        //         .setEmptyImageVisible(true)
-        //         .setErrorImageVisible(true)
-        //         .setNoNetWorkImageVisible(true)
-        //         .setEmptyText(getString(R.string.custom_empty_text))
-        //         .setErrorText(getString(R.string.custom_error_text))
-        //         .setNoNetWorkText(getString(R.string.custom_no_network_text))
-        //         .setAllTipTextSize(16)
-        //         .setAllTipTextColor(R.color.text_color_child)
-        //         .setAllPageBackgroundColor(R.color.pageBackground)
-        //         .setReloadBtnText(getString(R.string.custom_reloadBtn_text))
-        //         .setReloadBtnTextSize(16)
-        //         .setReloadBtnTextColor(R.color.colorPrimary)
-        //         .setReloadBtnBackgroundResource(R.drawable.selector_btn_normal)
-        //         .setReloadBtnVisible(false)
-        //         .setReloadClickArea(LoadDataLayout.BUTTON);
+        LoadDataLayout.getBuilder()
+                .setLoadingText(getString(R.string.custom_loading_text))
+                .setLoadingTextSize(16)
+                .setLoadingTextColor(R.color.colorPrimary)
+                //.setLoadingViewLayoutId(R.layout.custom_loading_view) //如果设置了自定义loading视图,上面三个方法失效
+                .setEmptyImgId(R.drawable.ic_empty)
+                .setErrorImgId(R.drawable.ic_error)
+                .setNoNetWorkImgId(R.drawable.ic_no_network)
+                .setEmptyImageVisible(true)
+                .setErrorImageVisible(true)
+                .setNoNetWorkImageVisible(true)
+                .setEmptyText(getString(R.string.custom_empty_text))
+                .setErrorText(getString(R.string.custom_error_text))
+                .setNoNetWorkText(getString(R.string.custom_no_network_text))
+                .setAllTipTextSize(16)
+                .setAllTipTextColor(R.color.text_color_child)
+                .setAllPageBackgroundColor(R.color.pageBackground)
+                .setReloadBtnText(getString(R.string.custom_reloadBtn_text))
+                .setReloadBtnTextSize(13)
+                .setReloadBtnTextColor(R.color.text_color_child)
+                //.setReloadBtnBackgroundResource(R.drawable.selector_btn_normal)
+                .setReloadBtnVisible(false)
+                .setReloadClickArea(LoadDataLayout.FULL);
+
+        ClassicsHeader.REFRESH_HEADER_RELEASE = "松开,我会显示更多数据";
 
         SmartRefreshLayout.setDefaultRefreshHeaderCreater(new DefaultRefreshHeaderCreater() {
             @NonNull
@@ -110,6 +115,19 @@ public abstract class BaseApplication extends Application {
             public RefreshHeader createRefreshHeader(Context context, RefreshLayout layout) {
                 JzkHeader jzkHeader = new JzkHeader(context);
                 jzkHeader.setSpinnerStyle(SpinnerStyle.Scale);
+                jzkHeader.setArrowResource(R.drawable.loading_rocket);
+                jzkHeader.setProgressResource(R.drawable.loading_rocket);
+                jzkHeader.setFinishDuration(320);//刷新完成 后 隐藏所用时间
+                jzkHeader.setEnableLastTime(false);//隐藏上次刷新时间
+
+                layout.setPrimaryColorsId(R.color.color_refreshLayout_background, R.color.color_refreshLayout_text);
+                layout.setFooterHeight(80);
+                layout.setHeaderHeight(80);
+                layout.setReboundDuration(320);//设置回弹动画时长
+                layout.setDisableContentWhenLoading(false);
+                layout.setDisableContentWhenRefresh(false);
+                layout.setEnableAutoLoadmore(false);
+
                 return jzkHeader;
             }
         });

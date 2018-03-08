@@ -33,7 +33,7 @@ public class MvpObserver<T> extends BaseObserver<T> {
         if (log != null) {
             log.i("onNext():加载 " + mDescription + " 成功: " + bean.toString());
         }
-        if (listener != null) {
+        if (listener != null && !listener.isDetachView()) {
             listener.onSuccess(action, bean);
         }
     }
@@ -43,7 +43,7 @@ public class MvpObserver<T> extends BaseObserver<T> {
         if (log != null) {
             log.e("onError():  加载 " + mDescription + " 失败: ", e);
         }
-        if (listener != null) {
+        if (listener != null && !listener.isDetachView()) {
             listener.onError(action, e);
         }
     }
@@ -53,7 +53,7 @@ public class MvpObserver<T> extends BaseObserver<T> {
         if (log != null) {
             log.i("onCompleted(): 加载 " + mDescription + " 完成");
         }
-        if (listener != null) {
+        if (listener != null && !listener.isDetachView()) {
             listener.onCompleted(action);
         }
     }

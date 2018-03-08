@@ -1,16 +1,16 @@
 package com.bing.lan.comm.view;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.StateListDrawable;
 import android.util.AttributeSet;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-
-import com.bing.lan.comm.app.AppUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,11 +18,69 @@ import java.util.Random;
 
 public class FlowLayout extends ViewGroup implements View.OnClickListener {
 
-    private List<Line> mLines = new ArrayList<Line>(); // 用来记录描述有多少行View
-    private Line mCurrrenLine; // 用来记录当前已经添加到了哪一行
+    LineFillProvider mLineFillProvider = new LineFillProvider() {
+        @Override
+        public boolean fillLine(int allLineSize, int lineIndex, int lineChildAllSize, int childIndex, float avg) {
+            return lineIndex != allLineSize - 1;
+        }
+    };
+    ColorProvider mDefaultColorProvider = new ColorProvider() {
+        Random random = new Random();
+        int[] color = new int[4];
+
+        @Override
+        public int textColor(int position) {
+            return Color.BLUE;
+        }
+
+        @Override
+        public int normalBackgroundColor(int position) {
+            color[0] = 255;
+            color[1] = random.nextInt(190) + 30;
+            color[2] = random.nextInt(190) + 30;
+            color[3] = random.nextInt(190) + 30;
+            return Color.argb(color[0], color[1], color[2], color[3]);
+        }
+
+        @Override
+        public int normalStrokeColor(int position) {
+            color[0] = 255;
+            color[1] = random.nextInt(190) + 30;
+            color[2] = random.nextInt(190) + 30;
+            color[3] = random.nextInt(190) + 30;
+            return Color.argb(color[0], color[1], color[2], color[3]);
+        }
+
+        @Override
+        public int selectBackgroundColor(int position) {
+            color[0] = 255;
+            color[1] = random.nextInt(190) + 30;
+            color[2] = random.nextInt(190) + 30;
+            color[3] = random.nextInt(190) + 30;
+            return Color.argb(color[0], color[1], color[2], color[3]);
+        }
+
+        @Override
+        public int selectStrokeColor(int position) {
+            color[0] = 255;
+            color[1] = random.nextInt(190) + 30;
+            color[2] = random.nextInt(190) + 30;
+            color[3] = random.nextInt(190) + 30;
+            return Color.argb(color[0], color[1], color[2], color[3]);
+        }
+    };
+    private List<Line> mLines = new ArrayList<>(); // 用来记录描述有多少行View
     private int mHorizontalSpace = 10;
     private int mVerticalSpace = 10;
-    private OnItemClickListener listener;
+    private OnFlowItemClickListener listener;
+    private List<FlowBean> mFlowBeanList = new ArrayList<>();
+    private int mBackgroundRadius = dp2px(8);
+    private int mTextSize = dp2px(8);
+
+    private int left = dp2px(2);
+    private int top = dp2px(2);
+    private int right = dp2px(2);
+    private int bottom = dp2px(2);
 
     public FlowLayout(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -34,16 +92,55 @@ public class FlowLayout extends ViewGroup implements View.OnClickListener {
         // TODO Auto-generated constructor stub
     }
 
+    public int dp2px(int dip) {
+        // denstity*dip=px;
+        float density = Resources.getSystem().getDisplayMetrics().density;
+        return (int) (dip * density + .5f);
+    }
+
+    public int px2dp(int px) {
+        // denstity*dip=px;
+        float density = Resources.getSystem().getDisplayMetrics().density;
+        return (int) (px / density + .5f);
+    }
+
+    public void setLineFillProvider(LineFillProvider lineFillProvider) {
+        mLineFillProvider = lineFillProvider;
+    }
+
     public void setSpace(int horizontalSpace, int verticalSpace) {
         this.mHorizontalSpace = horizontalSpace;
         this.mVerticalSpace = verticalSpace;
+    }
+
+    public void setBackgroundRadius(int backgroundRadius) {
+        mBackgroundRadius = backgroundRadius;
+    }
+
+    public void setTextSize(int textSize) {
+        mTextSize = textSize;
+    }
+
+    public void setTextPadding(int textPadding) {
+        setTextPadding(textPadding, textPadding, textPadding, textPadding);
+    }
+
+    public void setTextPadding(int left, int top) {
+        setTextPadding(left, top, left, top);
+    }
+
+    public void setTextPadding(int left, int top, int right, int bottom) {
+        this.left = left;
+        this.top = top;
+        this.right = right;
+        this.bottom = bottom;
     }
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         // 清空
         mLines.clear();
-        mCurrrenLine = null;
+        Line currentLine = null;
 
         int layoutWidth = MeasureSpec.getSize(widthMeasureSpec);
 
@@ -64,31 +161,31 @@ public class FlowLayout extends ViewGroup implements View.OnClickListener {
             measureChild(view, widthMeasureSpec, heightMeasureSpec);
 
             // 往lines添加孩子
-            if (mCurrrenLine == null) {
+            if (currentLine == null) {
                 // 说明还没有开始添加孩子
-                mCurrrenLine = new Line(maxLineWidth, mHorizontalSpace);
+                currentLine = new Line(mLines.size(), maxLineWidth, mHorizontalSpace);
 
                 // 添加到 Lines中
-                mLines.add(mCurrrenLine);
+                mLines.add(currentLine);
 
                 // 行中一个孩子都没有
-                mCurrrenLine.addView(view);
+                currentLine.addView(view);
             } else {
                 // 行不为空,行中有孩子了
-                boolean canAdd = mCurrrenLine.canAdd(view);
+                boolean canAdd = currentLine.canAdd(view);
                 if (canAdd) {
                     // 可以添加
-                    mCurrrenLine.addView(view);
+                    currentLine.addView(view);
                 } else {
                     // 不可以添加,装不下去
                     // 换行
 
                     // 新建行
-                    mCurrrenLine = new Line(maxLineWidth, mHorizontalSpace);
+                    currentLine = new Line(mLines.size(), maxLineWidth, mHorizontalSpace);
                     // 添加到lines中
-                    mLines.add(mCurrrenLine);
+                    mLines.add(currentLine);
                     // 将view添加到line
-                    mCurrrenLine.addView(view);
+                    currentLine.addView(view);
                 }
             }
         }
@@ -99,10 +196,11 @@ public class FlowLayout extends ViewGroup implements View.OnClickListener {
 
         float allHeight = 0;
         for (int i = 0; i < mLines.size(); i++) {
-            float mHeigth = mLines.get(i).mHeigth;
+            Line line = mLines.get(i);
+            float mHeight = line.mHeight;
 
             // 加行高
-            allHeight += mHeigth;
+            allHeight += mHeight;
             // 加间距
             if (i != 0) {
                 allHeight += mVerticalSpace;
@@ -119,70 +217,103 @@ public class FlowLayout extends ViewGroup implements View.OnClickListener {
 
         int paddingLeft = getPaddingLeft();
         int offsetTop = getPaddingTop();
-        for (int i = 0; i < mLines.size(); i++) {
+        int size = mLines.size();
+        for (int i = 0; i < size; i++) {
             Line line = mLines.get(i);
+            line.setAllLineSize(size);
 
             // 给行布局
             line.layout(paddingLeft, offsetTop);
-
-            offsetTop += line.mHeigth + mVerticalSpace;
+            offsetTop += line.mHeight + mVerticalSpace;
         }
     }
 
-    public void initAllChild(List<CharSequence> strings) {
+    public void addAllChild(List<FlowBean> flowBeen) {
         removeAllViews();
-        for (CharSequence string : strings) {
-            addChild(string);
+        for (FlowBean flowBean : flowBeen) {
+            addChild(flowBean);
         }
     }
 
-    public void addChild(CharSequence string) {
-        this.addView(createChild(string));
+    @Override
+    public void removeAllViews() {
+        super.removeAllViews();
+
+        if (mFlowBeanList != null) {
+            mFlowBeanList.clear();
+        }
     }
 
-    public void addChild(CharSequence string, int index) {
-        this.addView(createChild(string), index);
+    public void setSelectFlowItem(int selectPosition) {
+        int count = getChildCount();
+        for (int i = 0; i < count; i++) {
+            View view = getChildAt(i);
+            view.setSelected(selectPosition == i);
+        }
     }
 
-    private View createChild(CharSequence string) {
+    public void addChild(FlowBean flowBeen) {
+        this.addView(createChild(flowBeen, getChildCount()));
+    }
+
+    // TODO: 2017/8/16 有bug 外部添加时插到中间，导致两个相邻颜色一致
+    public void addChild(FlowBean flowBeen, int position) {
+        this.addView(createChild(flowBeen, position), position);
+    }
+
+    public void setColorProvider(ColorProvider colorProvider) {
+        mDefaultColorProvider = colorProvider;
+    }
+
+    private View createChild(FlowBean flowBean, int position) {
+
+        mFlowBeanList.add(flowBean);
+        CharSequence string = flowBean.getFlowText();
+
         TextView textView = new TextView(getContext());
         textView.setText(string);
-        textView.setTextSize(AppUtil.dp2px(8));
+
+        textView.setTextSize(TypedValue.COMPLEX_UNIT_PX, mTextSize);
         textView.setGravity(Gravity.CENTER);
-        textView.setTextColor(Color.WHITE);
+        int color = mDefaultColorProvider.textColor(position);
+        if (color != 0) {
+            textView.setTextColor(color);
+        }
+        textView.setPadding(left, top, right, bottom);
 
-        int padding = AppUtil.dp2px(2);
-        textView.setPadding(padding, padding, padding, padding);
-
-
-        Random random = new Random();
-        int alpha = 255;
-        int red = random.nextInt(190) + 30;
-        int green = random.nextInt(190) + 30;
-        int blue = random.nextInt(190) + 30;
-
-        int argb = Color.argb(alpha, red, green, blue);
+        //LayoutParams lp = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+        //textView.setLayoutParams(lp);
+        //lp.width = 4;
 
         //正常时候的效果
         GradientDrawable normalDrawable = new GradientDrawable();
-        normalDrawable.setCornerRadius(8);//圆角处的弧度
-        normalDrawable.setColor(argb);
-
-        red = random.nextInt(190) + 30;
-        green = random.nextInt(190) + 30;
-        blue = random.nextInt(190) + 30;
-
-        argb = Color.argb(alpha, red, green, blue);
+        normalDrawable.setCornerRadius(mBackgroundRadius);//圆角处的弧度
+        color = mDefaultColorProvider.normalBackgroundColor(position);
+        if (color != 0) {
+            normalDrawable.setColor(color);
+        }
+        color = mDefaultColorProvider.normalStrokeColor(position);
+        if (color != 0) {
+            normalDrawable.setStroke(1, color);
+        }
 
         //选中时候的效果
         GradientDrawable pressDrawable = new GradientDrawable();
-        pressDrawable.setCornerRadius(8);
-        pressDrawable.setColor(argb);
+        pressDrawable.setCornerRadius(mBackgroundRadius);
+        color = mDefaultColorProvider.selectBackgroundColor(position);
+        if (color != 0) {
+            pressDrawable.setColor(color);
+        }
+        color = mDefaultColorProvider.selectStrokeColor(position);
+        if (color != 0) {
+            pressDrawable.setStroke(1, color);
+        }
 
         //选择器
         StateListDrawable listDrawable = new StateListDrawable();
 
         listDrawable.addState(new int[]{android.R.attr.state_pressed}, pressDrawable);
+        listDrawable.addState(new int[]{android.R.attr.state_selected}, pressDrawable);
         listDrawable.addState(new int[]{}, normalDrawable);
 
         //设置背景
@@ -190,6 +321,8 @@ public class FlowLayout extends ViewGroup implements View.OnClickListener {
 
         textView.setClickable(true);
         textView.setOnClickListener(this);
+        textView.setTag(flowBean);
+        textView.setContentDescription(position + "");
 
         return textView;
     }
@@ -197,36 +330,79 @@ public class FlowLayout extends ViewGroup implements View.OnClickListener {
     @Override
     public void onClick(View v) {
         if (listener != null) {
-            listener.onItemClick(v);
+            listener.onFlowItemClick(this, v, Integer.valueOf(String.valueOf(v.getContentDescription())), (FlowBean) v.getTag());
         }
     }
 
-    public void setOnItemClickListener(OnItemClickListener listener) {
+    public void setOnItemClickListener(OnFlowItemClickListener listener) {
         this.listener = listener;
     }
 
-    public interface OnItemClickListener {
+    //用于控制某行某个view宽度是否增加剩余空间的平均值
+    public interface LineFillProvider {
 
-        void onItemClick(View view);
+        /**
+         * @param allLineSize      总行数
+         * @param lineIndex        第几行
+         * @param lineChildAllSize 每行总个数
+         * @param childIndex       第几个数
+         * @param avg              填充时,每个view 宽度增加值
+         * @return true 表示当前行填充
+         */
+        boolean fillLine(int allLineSize, int lineIndex, int lineChildAllSize, int childIndex, float avg);
+    }
+
+    public interface ColorProvider {
+
+        int textColor(int position);
+
+        int normalBackgroundColor(int position);
+
+        int normalStrokeColor(int position);
+
+        int selectBackgroundColor(int position);
+
+        int selectStrokeColor(int position);
+    }
+
+    public interface OnFlowItemClickListener {
+
+        void onFlowItemClick(FlowLayout flowLayout, View view, int position, FlowBean flowBean);
+    }
+
+    public interface FlowBean {
+
+        CharSequence getFlowText();
     }
 
     class Line {
 
         // 属性
-        private List<View> mViews = new ArrayList<View>();    // 用来记录每一行有几个View
+        private List<View> mLineViews = new ArrayList<>();    // 用来记录每一行有几个View
         private float mMaxWidth;                            // 行最大的宽度
         private float mUsedWidth;                        // 已经使用了多少宽度
-        private float mHeigth;                            // 行的高度
+        private float mHeight;                            // 行的高度
         private float mMarginLeft;
         private float mMarginRight;
         private float mMarginTop;
         private float mMarginBottom;
         private float mHorizontalSpace;                    // View和view之间的水平间距
+        private int lineIndex; //排在第几行
+        private int allLineSize;//总行数
 
         // 构造
-        public Line(int maxWidth, int horizontalSpace) {
+        public Line(int index, int maxWidth, int horizontalSpace) {
+            this.lineIndex = index;
             this.mMaxWidth = maxWidth;
             this.mHorizontalSpace = horizontalSpace;
+        }
+
+        int getAllLineSize() {
+            return allLineSize;
+        }
+
+        void setAllLineSize(int allLineSize) {
+            this.allLineSize = allLineSize;
         }
 
         // 方法
@@ -239,7 +415,7 @@ public class FlowLayout extends ViewGroup implements View.OnClickListener {
         public void addView(View view) {
             // 加载View的方法
 
-            int size = mViews.size();
+            int size = mLineViews.size();
             int viewWidth = view.getMeasuredWidth();
             int viewHeight = view.getMeasuredHeight();
             // 计算宽和高
@@ -250,15 +426,15 @@ public class FlowLayout extends ViewGroup implements View.OnClickListener {
                 } else {
                     mUsedWidth = viewWidth;
                 }
-                mHeigth = viewHeight;
+                mHeight = viewHeight;
             } else {
                 // 多个view的情况
                 mUsedWidth += viewWidth + mHorizontalSpace;
-                mHeigth = mHeigth < viewHeight ? viewHeight : mHeigth;
+                mHeight = mHeight < viewHeight ? viewHeight : mHeight;
             }
 
             // 将View记录到集合中
-            mViews.add(view);
+            mLineViews.add(view);
         }
 
         /**
@@ -270,7 +446,7 @@ public class FlowLayout extends ViewGroup implements View.OnClickListener {
         public boolean canAdd(View view) {
             // 判断是否能添加View
 
-            int size = mViews.size();
+            int size = mLineViews.size();
 
             if (size == 0) {
                 return true;
@@ -295,7 +471,7 @@ public class FlowLayout extends ViewGroup implements View.OnClickListener {
 
             int currentLeft = offsetLeft;
 
-            int size = mViews.size();
+            int size = mLineViews.size();
             // 判断已经使用的宽度是否小于最大的宽度
             float extra = 0;
             float widthAvg = 0;
@@ -305,25 +481,27 @@ public class FlowLayout extends ViewGroup implements View.OnClickListener {
             }
 
             for (int i = 0; i < size; i++) {
-                View view = mViews.get(i);
+                View view = mLineViews.get(i);
                 int viewWidth = view.getMeasuredWidth();
                 int viewHeight = view.getMeasuredHeight();
 
                 // 判断是否有富余
                 if (widthAvg != 0) {
-                    // 改变宽度
-                    int newWidth = (int) (viewWidth + widthAvg + 0.5f);
-                    int widthMeasureSpec = MeasureSpec.makeMeasureSpec(newWidth, MeasureSpec.EXACTLY);
-                    int heightMeasureSpec = MeasureSpec.makeMeasureSpec(viewHeight, MeasureSpec.EXACTLY);
-                    view.measure(widthMeasureSpec, heightMeasureSpec);
 
-                    viewWidth = view.getMeasuredWidth();
-                    viewHeight = view.getMeasuredHeight();
+                    if (mLineFillProvider.fillLine(allLineSize, lineIndex, size, i, widthAvg)) {
+                        // 改变宽度
+                        int newWidth = (int) (viewWidth + widthAvg - 0.5f);
+                        int widthMeasureSpec = MeasureSpec.makeMeasureSpec(newWidth, MeasureSpec.EXACTLY);
+                        int heightMeasureSpec = MeasureSpec.makeMeasureSpec(viewHeight, MeasureSpec.EXACTLY);
+                        view.measure(widthMeasureSpec, heightMeasureSpec);
+                        viewWidth = view.getMeasuredWidth();
+                        viewHeight = view.getMeasuredHeight();
+                    }
                 }
 
                 // 布局
                 int left = currentLeft;
-                int top = (int) (offsetTop + (mHeigth - viewHeight) / 2 +
+                int top = (int) (offsetTop + (mHeight - viewHeight) / 2 +
                         0.5f);
                 // int top = offsetTop;
                 int right = left + viewWidth;

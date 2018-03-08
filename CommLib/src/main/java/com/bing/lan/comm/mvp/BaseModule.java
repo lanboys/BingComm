@@ -1,5 +1,7 @@
 package com.bing.lan.comm.mvp;
 
+import android.text.TextUtils;
+
 import com.bing.lan.comm.api.progress.ProgressListener;
 import com.bing.lan.comm.api.progress.ProgressSingleRequestBody;
 import com.bing.lan.comm.app.BaseApplication;
@@ -163,5 +165,11 @@ public abstract class BaseModule implements IBaseContract.IBaseModule {
             return ProgressSingleRequestBody.create(MediaType.parse("multipart/form-data"), file, listener, progressId);
         }
         return null;
+    }
+
+    public void checkNotEmptyAdd(Map<String, String> map, String value, String name) {
+        if (!TextUtils.isEmpty(value)) {
+            map.put(name, value);
+        }
     }
 }

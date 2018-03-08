@@ -1,8 +1,17 @@
 apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
 
 //开启lambda
-apply plugin: 'me.tatarka.retrolambda'
+//apply plugin: 'me.tatarka.retrolambda'
 //开启lambda
+
+// 获取时间戳
+static def getDate() {
+    def date = new Date();
+    def formattedDate = date.format('yyyy-MM-dd')
+    return formattedDate
+}
 
 // 获取名字时间戳
 static def getNameDate() {
@@ -11,17 +20,10 @@ static def getNameDate() {
     return formattedDate
 }
 
-// 获取文件夹时间戳
-static def getDirectoryDate() {
-    def date = new Date();
-    def formattedDate = date.format('yyyy-MM-dd')
-    return formattedDate
-}
-
 //首字母转大写
 public static String toUpperCaseFirstOne(String s) {
     if (Character.isUpperCase(s.charAt(0))) {
-        return s;
+        return s
     } else {
         return (new StringBuilder()).append(Character.toUpperCase(s.charAt(0))).append(s.substring(1)).toString();
     }
@@ -31,9 +33,12 @@ def MyBuildType = "com.bing.lan.sample.config.MyBuildType"
 
 
 android {
-    compileSdkVersion 26
-    buildToolsVersion "26.0.1"
+
+    compileSdkVersion rootProject.ext.compileSdkVersion
+//    buildToolsVersion rootProject.ext.buildToolsVersion
+
     defaultConfig {
+
         applicationId rootProject.ext.applicationId
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
@@ -46,11 +51,23 @@ android {
                 cppFlags ""
             }
         }
+
+        flavorDimensions "versionCode" //多渠道需要添加
+
     }
 
 
     signingConfigs {
         debug {
+
+//            解决方案一
+//            v1和v2的签名使用
+//            只勾选v1签名并不会影响什么，但是在7.0上不会使用更安全的验证方式
+//            只勾选V2签名7.0以下会直接安装完显示未安装，7.0以上则使用了V2的方式验证
+//            同时勾选V1和V2则所有机型都没问题
+
+//            在 Android 7.0 以上版本的设备上，APK 可以根据Full Apk Signature（v2 方案） 或者 JAR-signed（ v1方案）进行验证；
+//            而对于7.0以下版本的设备其会忽略 v2 版本的签名，只验证 v1 签名
 
             v1SigningEnabled true
             v2SigningEnabled true
@@ -85,6 +102,9 @@ android {
     buildTypes {
 
         debug {
+//             变体需要匹配
+            matchingFallbacks = ['release', 'debug_pre', 'debug']
+
             signingConfig signingConfigs.debug
 //            applicationIdSuffix ".debug"//applicationId 后缀
 
@@ -100,6 +120,8 @@ android {
         }
 
         debug_pre {
+            matchingFallbacks = ['release', 'debug_pre', 'debug']
+
             signingConfig signingConfigs.debug
 //            applicationIdSuffix ".debug_pre"//applicationId 后缀
 
@@ -118,6 +140,8 @@ android {
         }
 
         release {
+            matchingFallbacks = ['release', 'debug_pre', 'debug']
+
             signingConfig signingConfigs.release
 
             //app 名字
@@ -147,14 +171,14 @@ android {
     }
 
     lintOptions {
-//        checkReleaseBuilds false
+        checkReleaseBuilds false
         abortOnError false
     }
 //    http://blog.csdn.net/dashan618/article/details/71641396
-//    aaptOptions {
-//        cruncherEnabled = false
-//        useNewCruncher = false
-//    }
+    aaptOptions {
+        cruncherEnabled = false
+        useNewCruncher = false
+    }
 
     //打印
 //    buildTypes.all { buildType ->
@@ -185,29 +209,29 @@ android {
     }
 
     // 渠道
-//    productFlavors {
-//        Commonsoon {
-//            manifestPlaceholders = [UMENG_CHANNEL_VALUE: "commonsoon"]
-//        }
-//    }
     productFlavors {
 
         productFlavors.all { flavor ->
-            flavor.manifestPlaceholders = [UMENG_CHANNEL_VALUE: name]
+            flavor.manifestPlaceholders = [FLAVOR_CHANNEL_VALUE: name]
         }
 
-        Commonsoon {}
-        Zhushou91 {}
-//        Market360 {}
-//        Xiaomi {}
-//        Wandoujia {}
-//        Marketandroid {}
-//        Yingyonghui {}
-//        Jifengmarket {}
-//        Mumayi {}
-//        Anzhimarket {}
-//        Yingyongbao {}
-//        Huaweimarket {}
+        Dev {}
+        JzkApp {}
+//        JzkWeb {}
+        YingYongBao {}
+//        ZhuShou91 {}
+//        Market360 {} //首位不能为数字
+//        XiaoMi {}
+//        WanDouJia {}
+//        AndroidMarket {}
+//        YingYongHui {}
+//        AnZhi {}
+//        BaiDu {}
+//        MeiZu {}
+//        HuaWei {}
+//        oppo {}
+//        vivo {}
+//        lenovo {}
 
     }
 
@@ -221,29 +245,43 @@ android {
             def newName = 'Android-' + moduleName + '-' + Product_flavor + '-' + Build_time + '-' + toUpperCaseFirstOne(variant.buildType.name) + '.apk'
 
             // 输出路径
-            def outDirectory = BUILD_PATH_IN_SERVER + '/' + Build_time;
+            def outDirectory = BUILD_PATH_IN_SERVER + '/' + Build_time
             println "服务器新名称：" + newName
             println "服务器输出路径：" + outDirectory
 
 
             if ("false" == Is_Jenkins) {   // 本机打包
                 newName = 'Android-' + moduleName + '-v' + "${defaultConfig.versionName}" + "-" + getNameDate()
-                newName = output.outputFile.name.replace(moduleName, newName);
-                newName = newName.replace("debug_pre", "外网测试");
-                newName = newName.replace("debug", "内网测试");
-                newName = newName.replace("release", "外网正式");
-                newName = newName.replace("unsigned", "未签名");
-                newName = newName.replace("signed", "已签名");
+                newName = output.outputFile.name.replace(moduleName, newName)
+                newName = newName.replace("debug_pre", "外网测试")
+                newName = newName.replace("debug", "内网测试")
+                newName = newName.replace("release", "外网正式")
+                newName = newName.replace("unsigned", "未签名")
+                newName = newName.replace("signed", "已签名")
 
-                outDirectory = output.outputFile.getParent() + '/' + getDirectoryDate()
+                outDirectory = output.outputFile.getParent() + '\\' + getDate()
+                outDirectory = outDirectory.replace("\\debug_pre", "")
+                outDirectory = outDirectory.replace("\\debug", "")
+                outDirectory = outDirectory.replace("\\release", "")
+                outDirectory = outDirectory.replace("\\" + variant.flavorName, "")
 
                 println "本机打包新名称：" + newName
                 println "本机打包输出路径：" + outDirectory
+            } else {
+                println "服务器新名称：" + newName
+                println "服务器输出路径：" + outDirectory
             }
-            println "最终包名：" + newName
-            println "-------------------------------"
 
-            output.outputFile = new File(outDirectory, newName)
+            if (new File(outDirectory).mkdirs()) {
+                println "创建目录成功：" + outDirectory
+            }
+
+//            output.outputFile = new File(outDirectory, newName)
+            output.outputFileName = newName
+            variant.getPackageApplication().outputDirectory = new File(outDirectory)
+
+//            println "最终包名：" + output.outputFileName
+//            println "最终路径：" + variant.getPackageApplication().outputDirectory
 
         }
     }
@@ -256,7 +294,7 @@ task getDebugPassword << {
     def keyalies = ''
     if (rootProject.file(key_store_password_file).exists()) {
 //    if (rootProject.file('private.properties').exists()) {
-        Properties properties = new Properties();
+        Properties properties = new Properties()
         properties.load(rootProject.file(key_store_password_file).newDataInputStream())
         keypassword = properties.getProperty('debug_password')
         storepassword = properties.getProperty('debug_storepassword')
@@ -274,7 +312,7 @@ task getReleasePassword << {
     def storepassword = ''
     def keyalies = ''
     if (rootProject.file(key_store_password_file).exists()) {
-        Properties properties = new Properties();
+        Properties properties = new Properties()
         properties.load(rootProject.file(key_store_password_file).newDataInputStream())
         keypassword = properties.getProperty('release_password')
         storepassword = properties.getProperty('release_storepassword')
@@ -295,11 +333,16 @@ tasks.whenTaskAdded { theTask ->
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
-        exclude group: 'com.android.support', module: 'support-annotations'
-    })
-    compile 'com.android.support.constraint:constraint-layout:1.0.2'
-    testCompile "junit:junit:$rootProject.junitVersion"
-    compile 'com.bing.lan:comm:0.0.1'
+
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
+    implementation 'com.android.support:appcompat-v7:26.1.0'
+    implementation 'com.android.support.constraint:constraint-layout:1.0.2'
+    implementation 'com.android.support:design:27.1.0'
+    testImplementation "junit:junit:$rootProject.junitVersion"
+
+    androidTestImplementation 'com.android.support.test:runner:1.0.1'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
+//    implementation 'com.bing.lan:comm:0.0.1'
+    implementation project(':CommLib')
 }

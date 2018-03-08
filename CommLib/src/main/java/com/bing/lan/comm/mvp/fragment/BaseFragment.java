@@ -5,19 +5,10 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.widget.SwipeRefreshLayout;
-import android.text.TextUtils;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.PopupWindow;
-import android.widget.TextView;
-import android.widget.Toast;
 
-import com.bing.lan.comm.R;
-import com.bing.lan.comm.app.AppUtil;
-import com.bing.lan.comm.toast.RxToast;
-import com.bing.lan.comm.utils.ProgressDialogUtil;
 import com.ganxin.library.LoadDataLayout;
 
 import butterknife.ButterKnife;
@@ -38,7 +29,6 @@ public abstract class BaseFragment<T extends IBaseFragmentContract.IBaseFragment
     protected T mPresenter;
     protected View mContentView;
     private Unbinder mViewBind;
-    private ProgressDialogUtil mProgressDialog;
     /**
      * 启动注入
      */
@@ -145,20 +135,20 @@ public abstract class BaseFragment<T extends IBaseFragmentContract.IBaseFragment
     @Override
     public void onDestroy() {
         super.onDestroy();
-        log.d("onDestroy(): ");
-
-        unbind();
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
-        log.d("onDetach(): ");
         //解绑
         if (mPresenter != null) {
             mPresenter.onDetachView();
             mPresenter = null;
         }
+
+        //解绑 必须后面执行，否则有些延时很久的成功请求 返回来 报空指针
+        unbind();
+
         //AppUtil.MemoryLeakCheck(this);
     }
 
@@ -208,7 +198,7 @@ public abstract class BaseFragment<T extends IBaseFragmentContract.IBaseFragment
      * @param isVisible true  不可见 -> 可见
      *                  false 可见  -> 不可见
      */
-    protected void onFragmentVisibleChange(boolean isVisible) {
+    protected void onFragmentVisibleChange(boolean isVisible) {//有bug 从activity回来 不回调
         log.d("onFragmentVisibleChange(): ");
     }
 
@@ -250,83 +240,6 @@ public abstract class BaseFragment<T extends IBaseFragmentContract.IBaseFragment
 
     public T getPresenter() {
         return mPresenter;
-    }
-
-    @Override
-    public void showError(String msg) {
-        if (TextUtils.isEmpty(msg)) {
-            return;
-        }
-        RxToast.error(AppUtil.getAppContext(), msg, Toast.LENGTH_SHORT, true).show();
-    }
-
-    @Override
-    public void showTip(String msg) {
-        if (TextUtils.isEmpty(msg)) {
-            return;
-        }
-
-        View view = LayoutInflater.from(getActivity()).inflate(R.layout.pop_tip_layout, null);
-        TextView tip = (TextView) view.findViewById(R.id.tv_tip);
-        tip.setText(msg);
-
-        //背景颜色
-        // view.setBackgroundColor(Color.WHITE);
-        PopupWindow popupWindow = new PopupWindow(view, ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT, true);
-        popupWindow.setAnimationStyle(R.style.PopupWindowTipAnimation);
-        //显示（自定义位置）随便new一个view 填下去 或者如下写法
-        try {
-            popupWindow.showAtLocation(getActivity().getWindow().getDecorView().findViewById(android.R.id.content),
-                    Gravity.NO_GRAVITY  /* | Gravity.CENTER_VERTICAL*/, 0, 250);
-        } catch (Exception e) {
-            log.e("showTip():  " + e.getLocalizedMessage());
-        }
-    }
-
-    @Override
-    public void showInfo(String msg) {
-        if (TextUtils.isEmpty(msg)) {
-            return;
-        }
-
-        RxToast.info(AppUtil.getAppContext(), msg, Toast.LENGTH_SHORT, true).show();
-    }
-
-    @Override
-    public void showProgressDialog(String msg) {
-
-        if (mProgressDialog != null) {
-            mProgressDialog.setMessage(msg == null ? "" : msg);
-        } else {
-            mProgressDialog = new ProgressDialogUtil(getActivity());
-            mProgressDialog.setMessage(msg == null ? "" : msg);
-            mProgressDialog.setCancelable(false);
-        }
-        mProgressDialog.show();
-    }
-
-    @Override
-    public void dismissProgressDialog() {
-        if (mProgressDialog != null) {
-            mProgressDialog.dismiss();
-            //mProgressDialog = null;
-        }
-    }
-
-    /**
-     * 显示 吐司
-     *
-     * @param msg 显示的消息
-     */
-    @Override
-    public void showToast(String msg) {
-        if (TextUtils.isEmpty(msg)) {
-            return;
-        }
-        // Toast.makeText(AppUtil.getAppContext(), msg, Toast.LENGTH_SHORT).show();
-
-        RxToast.normal(AppUtil.getAppContext(), msg).show();
     }
 
     @Override

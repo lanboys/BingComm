@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
@@ -19,15 +18,16 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.bing.lan.comm.cons.BaseCons.REQUEST_CODE_PERMISSION_BASE;
+import static com.bing.lan.comm.cons.BaseCons.REQUEST_CODE_PERMISSION_CALL_PHONE;
+
 /**
  * @author 蓝兵
  */
-public class PermissionActivity extends CloseSoftInputActivity {
+public class PermissionActivity extends ImmersionActivity {
 
-    protected static final int BASE_PERMISSION_REQUEST_CODE = 255;
-    protected static final int CALL_PHONE_PERMISSION_REQUEST_CODE = 331;
     protected final LogUtil log = LogUtil.getLogUtil(getClass(), LogUtil.LOG_VERBOSE);
-    private String mPhone;
+    private CharSequence mPhone;
 
     /* 启动activity时 进行权限请求 的开关 */
     protected boolean isCheckPermissions() {
@@ -54,9 +54,9 @@ public class PermissionActivity extends CloseSoftInputActivity {
             //检查基本权限是否授权成功
             if (checkBasePermissions(permissions)) {
                 //全部授权成功
-                if (requestCode == BASE_PERMISSION_REQUEST_CODE) {
+                if (requestCode == REQUEST_CODE_PERMISSION_BASE) {
                     //log.i("requestPermissions() 全部授权成功: " + Arrays.toString(permissions));
-                    requestBasePermissionSucceed();
+                    requestBasePermissionSucceed(Arrays.asList(permissions));
                 } else {
                     requestPermissionSucceed(requestCode, Arrays.asList(permissions));
                 }
@@ -66,8 +66,8 @@ public class PermissionActivity extends CloseSoftInputActivity {
             }
         } else {
             log.i("requestPermissions(): 版本低于 23 , 没有运行时权限");
-            if (requestCode == BASE_PERMISSION_REQUEST_CODE) {
-                requestBasePermissionSucceed();
+            if (requestCode == REQUEST_CODE_PERMISSION_BASE) {
+                requestBasePermissionSucceed(Arrays.asList(permissions));
             } else {
                 requestPermissionSucceed(requestCode, Arrays.asList(permissions));
             }
@@ -107,7 +107,7 @@ public class PermissionActivity extends CloseSoftInputActivity {
         if (shouldShowPermission.size() > 0) {
             log.i("checkDeniedPermissions():被拒绝过,会弹窗向用户解释 的权限: " + shouldShowPermission.toString());
             //被拒绝过需要解释
-            if (requestCode == BASE_PERMISSION_REQUEST_CODE) {
+            if (requestCode == REQUEST_CODE_PERMISSION_BASE) {
                 showRationaleDialog(requestCode, permissions, shouldShowPermission, true);
             } else {
                 showRationaleDialog(requestCode, permissions, shouldShowPermission, false);
@@ -156,7 +156,7 @@ public class PermissionActivity extends CloseSoftInputActivity {
     /* 真正请求权限的操作 */
     private void requestPermissionsImpl(final int requestCode, final String[] permissions) {
         //请求权限
-        new Handler().post(new Runnable() {
+        AppUtil.getMainHandler().post(new Runnable() {
             @Override
             public void run() {
                 //弹系统请求权限对话框,只弹出没有勾选 不再显示 的对话框
@@ -184,7 +184,7 @@ public class PermissionActivity extends CloseSoftInputActivity {
 
         // 报告每个请求失败的权限
         if (!failed.isEmpty()) {
-            if (requestCode == BASE_PERMISSION_REQUEST_CODE) {
+            if (requestCode == REQUEST_CODE_PERMISSION_BASE) {
                 //一定要true,否则打开设置页面后，不开启权限，直接返回后，权限仍然未开启但是却可以操作了，绕过了权限申请
                 showPermissionsFailedAlertDialog(failed, true);
             } else {
@@ -193,28 +193,37 @@ public class PermissionActivity extends CloseSoftInputActivity {
             return;
         }
 
-        // 权限请求成功
-        if (requestCode == BASE_PERMISSION_REQUEST_CODE) {
-            requestBasePermissionSucceed();
+        // 全部权限请求成功 才到这里
+        if (requestCode == REQUEST_CODE_PERMISSION_BASE) {
+            requestBasePermissionSucceed(success);
         } else {
             requestPermissionSucceed(requestCode, success);
         }
     }
 
     /*  请求基本权限成功时调用 */
-    protected void requestBasePermissionSucceed() {
-        log.i("requestBasePermissionSucceed():请求基本权限成功");
+    protected void requestBasePermissionSucceed(List<String> successPermissions) {
+        for (String successPermission : successPermissions) {
+            log.i("requestBasePermissionSucceed():请求基本权限成功: " + successPermission);
+        }
     }
 
     /*  权限请求成功时调用 */
     protected void requestPermissionSucceed(int requestCode, List<String> successPermissions) {
-        if (requestCode == CALL_PHONE_PERMISSION_REQUEST_CODE && mPhone != null) {
+        for (String successPermission : successPermissions) {
+            log.i("requestPermissionSucceed():请求成功的权限：" + successPermission);
+        }
+
+        if (requestCode == REQUEST_CODE_PERMISSION_CALL_PHONE && mPhone != null) {
             callPhoneImpl(mPhone);
         }
     }
 
     /*  权限请求失败时调用 */
     protected void requestPermissionFailed(int requestCode, List<String> failedPermissions) {
+        for (String successPermission : failedPermissions) {
+            log.i("requestPermissionSucceed():请求失败的权限：" + successPermission);
+        }
         showPermissionsFailedAlertDialog(failedPermissions, false);
     }
 
@@ -236,7 +245,7 @@ public class PermissionActivity extends CloseSoftInputActivity {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         dialogInterface.dismiss();
-                        AppUtil.detailApp(PermissionActivity.this, getPackageName());
+                        AppUtil.goToDetailApp(PermissionActivity.this );
                         if (needFinish) {
                             finish();
                         }
@@ -246,14 +255,15 @@ public class PermissionActivity extends CloseSoftInputActivity {
                 .create();
         permissionsFailedAlertDialog.setCanceledOnTouchOutside(false);
         permissionsFailedAlertDialog.show();
-    }    // 拨打电话
-
-    public void callPhone(String phone) {
-        this.mPhone = phone;
-        requestPermissions(CALL_PHONE_PERMISSION_REQUEST_CODE, R.array.call_phone_runtime_permissions);
     }
 
-    public void callPhoneImpl(String phone) {
+    // 拨打电话
+    public void callPhone(CharSequence phone) {
+        this.mPhone = phone;
+        requestPermissions(REQUEST_CODE_PERMISSION_CALL_PHONE, R.array.call_phone_runtime_permissions);
+    }
+
+    public void callPhoneImpl(CharSequence phone) {
 
         Intent intent = new Intent(Intent.ACTION_CALL);
         Uri data1 = Uri.parse("tel:" + phone);

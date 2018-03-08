@@ -6,6 +6,7 @@
         <attr name="toolbar_title" format="string"/>
         <attr name="toolbar_title_centerInParent" format="boolean"/>
         <attr name="toolbar_title_marginLeft" format="dimension"/>
+        <attr name="toolbar_title_marginRight" format="dimension"/>
         <attr name="toolbar_title_gravity">
             <!-- Push object to the top of its container, not changing its size. -->
             <flag name="top" value="0x30"/>
@@ -88,6 +89,10 @@
 
         <!-- 整个布局的高度 -->
         <attr name="edit_layout_height" format="dimension"/>
+        <attr name="edit_layout_background" format="color|reference"/>
+
+        <attr name="edit_paddingLeft" format="dimension"/>
+        <attr name="edit_paddingRight" format="dimension"/>
         <attr name="edit_text_size" format="dimension"/>
         <attr name="edit_text" format="string"/>
         <attr name="edit_color" format="color"/>
@@ -194,7 +199,6 @@
     </declare-styleable>
 
 
-
     <declare-styleable name="FlikerProgressBar">
         <attr name="textSize" format="dimension"/>
         <attr name="loadingColor" format="color"/>
@@ -202,6 +206,14 @@
         <attr name="finishColor" format="color"/>
         <attr name="radius" format="dimension"/>
         <attr name="borderWidth" format="dimension"/>
+    </declare-styleable>
+
+    <!-- 添加购物车 -->
+    <declare-styleable name="ShoppingView">
+        <attr name="sv_bg_color" format="color"/>
+        <attr name="sv_text" format="string"/>
+        <attr name="sv_text_size" format="dimension"/>
+        <attr name="sv_duration" format="integer"/>
     </declare-styleable>
 
 

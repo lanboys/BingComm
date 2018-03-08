@@ -141,6 +141,10 @@ public class TimePickerUtil {
             case HOURS_MINS:
                 builder.setLabel("", "", "", "时", "分", "");
                 break;
+
+            case ALL:
+                builder.setLabel("年", "月", "日", "时", "分", "秒");
+                break;
         }
 
         return builder;

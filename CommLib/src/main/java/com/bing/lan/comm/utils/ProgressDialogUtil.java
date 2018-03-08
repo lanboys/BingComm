@@ -15,7 +15,7 @@ public class ProgressDialogUtil extends ProgressDialog {
     private TextView tv_message;
 
     // private String mMessage = "加载中...";
-    private String mMessage = "";
+    private CharSequence mMessage = "";
 
     public ProgressDialogUtil(Context context) {
         super(context, R.style.ProgressDialogTheme);
@@ -43,9 +43,8 @@ public class ProgressDialogUtil extends ProgressDialog {
     /**
      * 设置内容
      *
-     * @param message
      */
-    public void setMessage(String message) {
+    public void setProgressMessage(CharSequence message) {
         super.setMessage(message);
         mMessage = message;
         if (tv_message != null) {

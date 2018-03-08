@@ -10,12 +10,12 @@ import android.support.annotation.NonNull;
 
 import com.bing.lan.comm.app.AppConfig;
 import com.bing.lan.comm.app.AppUtil;
+import com.bing.lan.comm.encrypt.RxEncodeUtils;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import java.util.ArrayList;
 import java.util.List;
-
 
 public class SPUtil {
 
@@ -58,6 +58,14 @@ public class SPUtil {
         return getSp().getString(key, "");
     }
 
+    public static String getString(@NonNull String key, boolean isBase64Decode) {
+        String value = getString(key);
+        if (isBase64Decode) {
+            value = RxEncodeUtils.base64Decode2String(value);
+        }
+        return value;
+    }
+
     /**
      * store a string value of a certain key
      *
@@ -66,6 +74,13 @@ public class SPUtil {
      */
     public static void putString(@NonNull String key, @NonNull String value) {
         getSp().edit().putString(key, value).apply();
+    }
+
+    public static void putString(@NonNull String key, @NonNull String value, boolean isBase64Encode) {
+        if (isBase64Encode) {
+            value = RxEncodeUtils.base64Decode2String(value);
+        }
+        putString(key, value);
     }
 
     /**
@@ -91,7 +106,6 @@ public class SPUtil {
     public static void clearAll() {
         getSp().edit().clear().apply();
     }
-
 
     /**
      * 保存List

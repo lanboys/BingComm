@@ -19,12 +19,16 @@ public class MD5Util {
     public static String MD5(String str) {
         String key;
         try {
+            // 通过MD5加密 先获得数字摘要器
             MessageDigest digest = MessageDigest.getInstance("MD5");
-            digest.update(str.getBytes());
+            byte[] strBytes = str.getBytes();
+            log.d("MD5(): " + Arrays.toString(strBytes));
+            digest.update(strBytes);
             byte[] bytes = digest.digest();
+            log.d("MD5(): " + Arrays.toString(bytes));
             key = bytesToHexString(bytes);
         } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
+            log.e("MD5():  ", e);
             key = String.valueOf(str.hashCode());
         }
         log.i("MD5(): key " + key);
@@ -37,8 +41,10 @@ public class MD5Util {
         log.d("bytesToHexString(): " + bytes.length);
         log.d("bytesToHexString(): " + Arrays.toString(bytes));
         for (byte bt : bytes) {
-            //将int 转换成 16 进制字符串 如: int(0011 0010)---> String("32")
-            String hex = Integer.toHexString(0xFF & bt);
+            // http://blog.csdn.net/scyatcs/article/details/16887807
+            int i = 0xFF & bt;//???
+            // http://blog.csdn.net/lan_bing2013/article/details/52864635
+            String hex = Integer.toHexString(i); //将int 转换成 16 进制字符串 如: int(0011 0010)---> String("32")
             if (hex.length() == 1) {
                 sb.append('0');
             }

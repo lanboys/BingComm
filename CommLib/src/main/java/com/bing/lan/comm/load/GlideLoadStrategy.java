@@ -2,20 +2,17 @@ package com.bing.lan.comm.load;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.os.AsyncTask;
-import android.util.Log;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import com.bing.lan.comm.R;
+import com.bing.lan.comm.utils.LogUtil;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
-import com.bing.lan.comm.utils.BitmapUtil;
-import com.bing.lan.comm.utils.LogUtil;
 
 import java.io.File;
-import com.bing.lan.comm.R;
 
 /**
  * @author 蓝兵
@@ -26,33 +23,44 @@ public class GlideLoadStrategy implements IBaseLoaderStrategy {
     protected final LogUtil log = LogUtil.getLogUtil(getClass(), LogUtil.LOG_VERBOSE);
 
     @Override
-    public void loadImage(Context ctx, ImageView imageView, String imageUrl, int reqWidth, int reqHeight) {
+    public void loadImage(Context ctx, ImageView imageView, String imageUrl) {
+        loadImagePlaceholder(ctx, imageView, imageUrl, R.drawable.ic_placeholder, R.drawable.ic_placeholder);
+    }
 
+    @Override
+    public void loadImage(Context ctx, ImageView imageView, String imageUrl, int reqWidth, int reqHeight) {
+        loadImagePlaceholder(ctx, imageView, imageUrl, reqWidth, reqHeight, R.drawable.ic_placeholder, R.drawable.ic_placeholder);
+    }
+
+    @Override
+    public void loadImagePlaceholder(Context ctx, ImageView imageView, String imageUrl, int placeholderResId, int errorResId) {
+        //不给override尺寸按ImageView尺寸进行加载图片到内存,从网络下载的图片都是原尺寸
+        Glide.with(ctx)
+                .load(imageUrl)
+                .asBitmap()
+                // .Transformation()
+                .thumbnail(0.1f)
+                //.override(imageViewWidth, finalHeight)
+                .placeholder(placeholderResId)
+                .error(errorResId)
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                .into(imageView);
+    }
+
+    @Override
+    public void loadImagePlaceholder(Context ctx, ImageView imageView, String imageUrl, int reqWidth, int reqHeight,
+            int placeholderResId, int errorResId) {
         log.i("loadImage()  reqWidth: " + reqWidth + "   reqHeight: " + reqHeight);
 
         Glide.with(ctx)
                 .load(imageUrl)
                 .asBitmap()
                 // .Transformation()
-                //.thumbnail(0.1f)
-                .override(reqWidth, reqHeight)
-                // .placeholder(R.drawable.image_default_202)
-                .error(R.drawable.id_card_pic)
-                .diskCacheStrategy(DiskCacheStrategy.RESULT)
-                .into(imageView);
-    }
-
-    @Override
-    public void loadImage(Context ctx, ImageView imageView, String imageUrl) {
-        Glide.with(ctx)
-                .load(imageUrl)
-                .asBitmap()
-                // .Transformation()
-                //.thumbnail(0.1f)
-                //.override(imageViewWidth, finalHeight)
-                // .placeholder(R.drawable.image_default_202)
-                .error(R.drawable.iv_logo)
-                .diskCacheStrategy(DiskCacheStrategy.RESULT)
+                .thumbnail(0.1f)
+                .override(reqWidth, reqHeight)// 宽高是用于内部的 BitmapFactory.decodeFile
+                .placeholder(placeholderResId)
+                .error(errorResId)
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .into(imageView);
     }
 
@@ -77,9 +85,9 @@ public class GlideLoadStrategy implements IBaseLoaderStrategy {
 
                               int width = bitmap.getWidth();
                               int height = bitmap.getHeight();
-                              log.d("onResourceReady(): bitmap width:  " + width + ", bitmap height: " + height + "  imageUrl: " + imageUrl);
+                              log.d("onResourceReady(): bitmap realWidth:  " + width + ", bitmap realHeight: " + height + "  imageUrl: " + imageUrl);
 
-                              // imageView1.setRelative(width / height);
+                              // imageView1.setRelative(realWidth / realHeight);
                               // imageView.setImageBitmap(bitmap);
 
                               //计算控件高宽比
@@ -89,8 +97,8 @@ public class GlideLoadStrategy implements IBaseLoaderStrategy {
                               log.d("onResourceReady(): imageViewWidth: " + imageViewWidth + " imageViewHeight: " + finalHeight);
 
                               // //计算inSampleSize
-                              // float scaleW = (width * 1.0f) / imageViewWidth;
-                              // float scaleH = (height * 1.0f) / layoutParams.height;
+                              // float scaleW = (realWidth * 1.0f) / imageViewWidth;
+                              // float scaleH = (realHeight * 1.0f) / layoutParams.realHeight;
                               // //取大的
                               // float inSampleSize = Math.max(scaleW, scaleH);
 
@@ -132,77 +140,44 @@ public class GlideLoadStrategy implements IBaseLoaderStrategy {
                 });
     }
 
+    /**
+     * 先获取缓存文件 ---> 再设置到ImageView中
+     * 目的: 在回调中返回 图片File
+     *
+     * @param ctx
+     * @param imageView
+     * @param imageUrl
+     * @param fileDownloadCallBack
+     */
+    //@Override
+    //public void loadImageCallBackFile(Context ctx, ImageView imageView, String imageUrl,
+    //        DownloadImageCallBack fileDownloadCallBack, int targetAngle) {
+    //    loadImageCallBackFile(ctx, imageView, imageUrl, 0, 0, fileDownloadCallBack, targetAngle);
+    //}
     @Override
-    public void loadImageFile(Context ctx, ImageView imageView, String imageUrl, FileDownloadCallBack fileDownloadCallBack,
-            int reqWidth, int reqHeight) {
-        log.i("loadImage()  reqWidth: " + reqWidth + "   reqHeight: " + reqHeight);
-        GetImageCacheAsyncTask task = new GetImageCacheAsyncTask(ctx, imageView, imageUrl, fileDownloadCallBack, reqWidth, reqHeight);
+    public void loadImageCallBackFile(Context ctx, ImageView imageView, String imageUrl, int reqWidth, int reqHeight,
+            GetImageCacheCallBack fileDownloadCallBack, int targetAngle) {
+        GetImageCacheAsyncTask task = new GetImageCacheAsyncTask(ctx, imageView, imageUrl,
+                fileDownloadCallBack, reqWidth, reqHeight, targetAngle);
         task.execute();
     }
 
-    private class GetImageCacheAsyncTask extends AsyncTask<Void, Void, File> {
+    /**
+     * 只下载图片
+     *
+     * @param ctx
+     * @param imageUrl
+     * @param destFile
+     * @param fileDownloadCallBack
+     */
+    @Override
+    public void downloadImageFileOnly(Context ctx, String imageUrl, File destFile,
+            DownloadImageCallBack fileDownloadCallBack) {
 
-        private final Context context;
-        private final FileDownloadCallBack fileDownloadCallBack;
-        private final String imageUrl;
-        private final int reqWidth;
-        private final int reqHeight;
-        private final ImageView imageView;
+        DownloadImageTask task = new DownloadImageTask(ctx, imageUrl, destFile,
+                fileDownloadCallBack);
 
-        public GetImageCacheAsyncTask(Context context, ImageView imageView, String imageUrl, FileDownloadCallBack fileDownloadCallBack,
-                int reqWidth, int reqHeight) {
-
-            this.context = context;
-            this.imageUrl = imageUrl;
-            this.imageView = imageView;
-            this.fileDownloadCallBack = fileDownloadCallBack;
-            this.reqWidth = reqWidth;
-            this.reqHeight = reqHeight;
-        }
-
-        @Override
-        protected File doInBackground(Void... voids) {
-            try {
-                return Glide.with(context)
-                        .load(imageUrl)
-                        .downloadOnly(reqWidth, reqHeight)
-                        .get();
-            } catch (Exception ex) {
-                return null;
-            }
-        }
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-        }
-
-        @Override
-        protected void onPostExecute(File result) {
-            try {
-                if (result == null) {
-                    return;
-                }
-                //此path就是对应文件的缓存路径
-                String path = result.getAbsolutePath();
-                Log.e("path", path);
-                if (fileDownloadCallBack != null) {
-                    fileDownloadCallBack.onSuccess(result);
-                }
-                //Bitmap bmp = BitmapFactory.decodeFile(path);
-                Bitmap bmp= BitmapUtil.decodeSampledBitmapFromFile(path, 700, 600);
-
-                if (imageView != null) {
-                    imageView.setImageBitmap(bmp);
-                }
-            } catch (Exception e) {
-                log.e("onPostExecute:  " + e.getLocalizedMessage());
-            }
-        }
-    }
-
-    public interface FileDownloadCallBack {
-        void onSuccess(File file);
+        task.execute();
     }
 
     // private void loadImageByLoad(ViewHolder holder, String imageUrl, int position) {
@@ -215,17 +190,17 @@ public class GlideLoadStrategy implements IBaseLoaderStrategy {
     //     // manager.loadImage(imageUrl, imagePath, new IAsyncImageLoadedCallBack() {
     //     //     @Override
     //     //     public void imageLoaded(Bitmap imageBitmap, String imgUrl) {
-    //     //         int width = imageBitmap.getWidth();
-    //     //         int height = imageBitmap.getHeight();
+    //     //         int realWidth = imageBitmap.getWidth();
+    //     //         int realHeight = imageBitmap.getHeight();
     //     //
-    //     //         // imageView1.setRelative(width / height);
+    //     //         // imageView1.setRelative(realWidth / realHeight);
     //     //         // imageView.setImageBitmap(imageBitmap);
     //     //
     //     //         //计算高宽比
-    //     //         int finalHeight = (imageViewSize) * height / width;
+    //     //         int finalHeight = (imageViewSize) * realHeight / realWidth;
     //     //
     //     //         ViewGroup.LayoutParams layoutParams = imageView.getLayoutParams();
-    //     //         layoutParams.height = finalHeight;
+    //     //         layoutParams.realHeight = finalHeight;
     //     //         imageView.setImageBitmap(imageBitmap);
     //     //     }
     //     // });
@@ -254,24 +229,24 @@ public class GlideLoadStrategy implements IBaseLoaderStrategy {
     //     //                   @Override
     //     //                   public void onResourceReady(Bitmap bitmap, GlideAnimation<? super Bitmap> glideAnimation) {
     //     //
-    //     //                       int width = bitmap.getWidth();
-    //     //                       int height = bitmap.getHeight();
+    //     //                       int realWidth = bitmap.getWidth();
+    //     //                       int realHeight = bitmap.getHeight();
     //     //                       log.d("onResourceReady(): imageUrl:  " + imageUrl);
-    //     //                       log.d("onResourceReady(): width:  " + width + ", height: " + height + "   " + imageUrl);
+    //     //                       log.d("onResourceReady(): realWidth:  " + realWidth + ", realHeight: " + realHeight + "   " + imageUrl);
     //     //
-    //     //                       // imageView1.setRelative(width / height);
+    //     //                       // imageView1.setRelative(realWidth / realHeight);
     //     //                       // imageView.setImageBitmap(bitmap);
     //     //
     //     //                       //计算控件高宽比
-    //     //                       int finalHeight = (int) (imageViewWidth * height / width + 0.5f);
-    //     //                       layoutParams.height = finalHeight;
+    //     //                       int finalHeight = (int) (imageViewWidth * realHeight / realWidth + 0.5f);
+    //     //                       layoutParams.realHeight = finalHeight;
     //     //
     //     //                       log.d("onResourceReady(): imageViewWidth: " + imageViewWidth
     //     //                               + " imageViewHeight: " + finalHeight);
     //     //
     //     //                       // //计算inSampleSize
-    //     //                       // float scaleW = (width * 1.0f) / imageViewWidth;
-    //     //                       // float scaleH = (height * 1.0f) / layoutParams.height;
+    //     //                       // float scaleW = (realWidth * 1.0f) / imageViewWidth;
+    //     //                       // float scaleH = (realHeight * 1.0f) / layoutParams.realHeight;
     //     //                       // //取大的
     //     //                       // float inSampleSize = Math.max(scaleW, scaleH);
     //     //

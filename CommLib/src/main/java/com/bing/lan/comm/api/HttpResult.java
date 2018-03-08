@@ -1,9 +1,13 @@
 package com.bing.lan.comm.api;
 
+import com.google.gson.Gson;
+
 /**
  * 统一处理返回数据
  */
 public class HttpResult<T> {
+
+    public static final int HTTP_CODE_SUCCESS = 200;
 
     private int errorCode;
 
@@ -12,7 +16,22 @@ public class HttpResult<T> {
 
     private String msg;
 
+    private String status;
+
     private T data;
+
+    public static <T> HttpResult<T> objectFromData(String str) {
+
+        return new Gson().fromJson(str, HttpResult.class);
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
 
     @Deprecated
     public int getCode() {
@@ -29,6 +48,7 @@ public class HttpResult<T> {
                 "errorCode=" + errorCode +
                 ", code=" + code +
                 ", msg='" + msg + '\'' +
+                ", status='" + status + '\'' +
                 ", data=" + data +
                 '}';
     }

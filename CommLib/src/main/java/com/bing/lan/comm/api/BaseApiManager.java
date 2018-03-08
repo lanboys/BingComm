@@ -31,7 +31,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
-import retrofit2.converter.fastjson.FastJsonConverterFactory;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 /**
  * Created by 520 on 2017/7/11.
@@ -120,8 +120,8 @@ public abstract class BaseApiManager {
                 .baseUrl(baseUrl)
                 .client(sOkHttpClient)
                 // .addConverterFactory(ScalarsConverterFactory.create()) //增加返回值为String的支持
-                //.addConverterFactory(GsonConverterFactory.create(sGson)) //增加返回值为Gson的支持(以实体类返回)
-                .addConverterFactory(FastJsonConverterFactory.create())
+                .addConverterFactory(GsonConverterFactory.create(sGson)) //增加返回值为Gson的支持(以实体类返回)
+                //.addConverterFactory(FastJsonConverterFactory.create())
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create()) //增加返回值为Observable<T>的支持
                 .build();
     }

@@ -21,7 +21,7 @@ public abstract class BaseRecyclerAdapter<T> extends
     /**
      * 返回item的布局资源id
      */
-    public abstract int getItemLayoutResId();
+    public abstract int getItemLayoutResId(int viewType);
 
     /**
      * 返回BaseViewHolder的子类
@@ -31,6 +31,11 @@ public abstract class BaseRecyclerAdapter<T> extends
     /**
      * 设置事件单击监听器
      */
+    public void setOnItemClickListener(OnItemClickListener listener) {
+        mListener = listener;
+    }
+
+    @Deprecated
     public void setItemClickListener(OnItemClickListener listener) {
         mListener = listener;
     }
@@ -38,7 +43,7 @@ public abstract class BaseRecyclerAdapter<T> extends
     @Override
     public BaseRecyclerAdapter.BaseViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
-        final View itemView = inflater.inflate(getItemLayoutResId(), parent, false);
+        final View itemView = inflater.inflate(getItemLayoutResId(viewType), parent, false);
         final BaseRecyclerAdapter.BaseViewHolder holder = createViewHolder(itemView, viewType);
         if (mListener != null) {
             itemView.setOnClickListener(
@@ -102,6 +107,10 @@ public abstract class BaseRecyclerAdapter<T> extends
     protected abstract class BaseViewHolder extends RecyclerView.ViewHolder {
 
         public View itemView;
+
+        public View getItemView() {
+            return itemView;
+        }
 
         public BaseViewHolder(View itemView) {
             super(itemView);

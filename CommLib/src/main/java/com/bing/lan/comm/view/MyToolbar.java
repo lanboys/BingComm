@@ -67,25 +67,30 @@ public class MyToolbar extends Toolbar implements View.OnClickListener {
 
         if (attrs != null) {
             TypedArray a = getContext().obtainStyledAttributes(attrs, R.styleable.MyToolbar);
-            String title = a.getString(R.styleable.MyToolbar_toolbar_title);
-            int gravity = a.getInt(R.styleable.MyToolbar_toolbar_title_gravity, -1);
-            boolean center = a.getBoolean(R.styleable.MyToolbar_toolbar_title_centerInParent, false);
-            float dimension = a.getDimension(R.styleable.MyToolbar_toolbar_title_marginLeft, -1.0f);
+            String toolbar_title = a.getString(R.styleable.MyToolbar_toolbar_title);
+            int toolbar_title_gravity = a.getInt(R.styleable.MyToolbar_toolbar_title_gravity, -1);
+            boolean toolbar_title_centerInParent = a.getBoolean(R.styleable.MyToolbar_toolbar_title_centerInParent, false);
+            float toolbar_title_marginLeft = a.getDimension(R.styleable.MyToolbar_toolbar_title_marginLeft, -1.0f);
+            float toolbar_title_marginRight = a.getDimension(R.styleable.MyToolbar_toolbar_title_marginRight, -1.0f);
 
-            if (gravity != -1) {
-                mToolBarTitle.setGravity(gravity);
+            if (toolbar_title_gravity != -1) {
+                mToolBarTitle.setGravity(toolbar_title_gravity);
             }
 
-            if (title != null) {
-                mToolBarTitle.setText(title);
+            if (toolbar_title != null) {
+                mToolBarTitle.setText(toolbar_title);
             }
-            if (center) {
+            if (toolbar_title_centerInParent) {
                 RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) mToolBarTitle.getLayoutParams();
                 params.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
             }
-            if (dimension != -1.0f) {
+            if (toolbar_title_marginLeft != -1.0f) {
                 RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) mToolBarTitle.getLayoutParams();
-                params.setMargins((int) dimension, 0, 0, 0);
+                params.setMargins((int) toolbar_title_marginLeft, 0, 0, 0);
+            }
+            if (toolbar_title_marginRight != -1.0f) {
+                RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) mToolBarTitle.getLayoutParams();
+                params.setMargins(0, 0, (int) toolbar_title_marginRight, 0);
             }
 
             a.recycle();
@@ -96,7 +101,7 @@ public class MyToolbar extends Toolbar implements View.OnClickListener {
         return mToolBarTitle;
     }
 
-    public void setToolBarTitle(@Nullable String toolBarTitle) {
+    public void setToolBarTitleText(@Nullable String toolBarTitle) {
         if (mToolBarTitle != null) {
             mToolBarTitle.setText(toolBarTitle);
         }
@@ -112,12 +117,34 @@ public class MyToolbar extends Toolbar implements View.OnClickListener {
         }
     }
 
-    public TextView setToolBarLeftTitle(@NonNull String leftTitle, @DrawableRes int resId) {
+    public TextView getToolBarLeftTitle() {
+        return mTvLeftTitle;
+    }
+
+    public TextView getToolBarRightTitle() {
+        return mTvRightTitle;
+    }
+
+    public void setToolBarLeftTitleTextSize(float textSizeDp) {
+        if (mTvLeftTitle != null) {
+            mTvLeftTitle.setTextSize(textSizeDp);//不填写单位，默认是dp
+        }
+    }
+
+    public void setToolBarRightTitleTextSize(float textSizeDp) {
+        if (mTvRightTitle != null) {
+            mTvRightTitle.setTextSize(textSizeDp);//不填写单位，默认是dp
+        }
+    }
+
+    public TextView setToolBarLeftTitle(@NonNull String leftTitle) {
         if (mTvLeftTitle == null) {
             RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(
                     ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT);
             layoutParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT, RelativeLayout.TRUE);
             layoutParams.addRule(RelativeLayout.CENTER_VERTICAL, RelativeLayout.TRUE);
+            //如果需要取消
+            //layoutParams.addRule(RelativeLayout.CENTER_VERTICAL, 0);
             mTvLeftTitle = new TextView(getContext());
             float textSize = mToolBarTitle.getTextSize();
             mTvLeftTitle.setTextSize(px2dp(textSize) - 5);//不填写单位，默认是dp
@@ -126,12 +153,7 @@ public class MyToolbar extends Toolbar implements View.OnClickListener {
             mTvLeftTitle.setOnClickListener(this);
             mRlContainer.addView(mTvLeftTitle, layoutParams);
         }
-        setTextViewDrawableLeft(mTvLeftTitle, resId);
         mTvLeftTitle.setText(leftTitle);
-        return mTvLeftTitle;
-    }
-
-    public TextView getToolBarLeftTitle() {
         return mTvLeftTitle;
     }
 
@@ -179,10 +201,6 @@ public class MyToolbar extends Toolbar implements View.OnClickListener {
             drawable.setBounds(0, 0, drawable.getMinimumWidth(), drawable.getMinimumHeight());
             textView.setCompoundDrawables(drawable, null, null, null);
         }
-    }
-
-    public TextView getToolBarRightTitle() {
-        return mTvRightTitle;
     }
 
     @Override

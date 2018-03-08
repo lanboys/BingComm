@@ -5,6 +5,7 @@ package com.bing.lan.comm.rx;
  */
 
 public interface OnDataChangerListener {
+
     @SuppressWarnings("unchecked")
     void onSuccess(int action, Object data);
 
@@ -14,5 +15,7 @@ public interface OnDataChangerListener {
 
     void onCompleted(int action);
 
-    void onNetError(int action,String tip);
+    void onNetError(int action, String tip);
+
+    boolean isDetachView();
 }

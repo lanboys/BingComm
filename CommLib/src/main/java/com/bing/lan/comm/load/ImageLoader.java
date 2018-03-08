@@ -5,6 +5,8 @@ import android.widget.ImageView;
 
 import com.bing.lan.comm.app.AppUtil;
 
+import java.io.File;
+
 /**
  * @author 蓝兵
  * @time 2017/2/23  21:55
@@ -35,28 +37,46 @@ public class ImageLoader {
     }
 
     public void loadImage(ImageView imageView, String url) {
-        // mStrategy.loadImage(imageView.getContext(), imageView, url);
         mStrategy.loadImage(AppUtil.getApplication(), imageView, url);
     }
 
     public void loadImage(ImageView imageView, String url, int reqWidth, int reqHeight) {
         mStrategy.loadImage(AppUtil.getApplication(), imageView, url, reqWidth, reqHeight);
-        // mStrategy.loadImage(imageView.getContext(), imageView, url, reqWidth, reqHeight);
+    }
+
+    public void loadImagePlaceholder(ImageView imageView, String url, int placeholderResId, int errorResId) {
+        mStrategy.loadImagePlaceholder(AppUtil.getApplication(), imageView, url, placeholderResId, errorResId);
+    }
+
+    public void loadImagePlaceholder(ImageView imageView, String url, int reqWidth, int reqHeight, int placeholderResId, int errorResId) {
+        mStrategy.loadImagePlaceholder(AppUtil.getApplication(), imageView, url, reqWidth, reqHeight, placeholderResId, errorResId);
     }
 
     public void loadBigImage(ImageView imageView, String url) {
         mStrategy.loadBigImage(AppUtil.getApplication(), imageView, url);
-        // mStrategy.loadBigImage(imageView.getContext(), imageView, url);
     }
 
     public void loadSmallImage(ImageView imageView, String url) {
         mStrategy.loadSmallImage(AppUtil.getApplication(), imageView, url);
-        // mStrategy.loadSmallImage(imageView.getContext(), imageView, url);
     }
 
-    public void loadImageFile(ImageView imageView, String url, GlideLoadStrategy.FileDownloadCallBack fileDownloadCallBack,
-            int reqWidth, int reqHeight) {
-        mStrategy.loadImageFile(AppUtil.getApplication(), imageView, url, fileDownloadCallBack, reqWidth, reqHeight);
-        // mStrategy.loadImage(imageView.getContext(), imageView, url, reqWidth, reqHeight);
+    public void loadImageCallBackFile(ImageView imageView, String url, GetImageCacheCallBack fileDownloadCallBack) {
+        loadImageCallBackFile(imageView, url, 0, 0, fileDownloadCallBack, 0);
+    }
+
+    public void loadImageCallBackFile(ImageView imageView, String url,
+            GetImageCacheCallBack fileDownloadCallBack, int targetAngle) {
+        loadImageCallBackFile(imageView, url, 0, 0, fileDownloadCallBack, targetAngle);
+    }
+
+    public void loadImageCallBackFile(ImageView imageView, String url, int reqWidth, int reqHeight,
+            GetImageCacheCallBack fileDownloadCallBack, int targetAngle) {
+
+        mStrategy.loadImageCallBackFile(AppUtil.getApplication(), imageView, url, reqWidth, reqHeight,
+                fileDownloadCallBack, targetAngle);
+    }
+
+    public void downloadImageFileOnly(String url, File destFile, DownloadImageCallBack fileDownloadCallBack) {
+        mStrategy.downloadImageFileOnly(AppUtil.getApplication(), url, destFile, fileDownloadCallBack);
     }
 }
