@@ -46,11 +46,11 @@ android {
         versionName rootProject.ext.versionName // xxx.功能模块.bug数量
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-        externalNativeBuild {
-            cmake {
-                cppFlags ""
-            }
-        }
+//        externalNativeBuild {
+//            cmake {
+//                cppFlags ""
+//            }
+//        }
 
         flavorDimensions "versionCode" //多渠道需要添加
 
@@ -164,11 +164,11 @@ android {
 
     }
 
-    externalNativeBuild {
-        cmake {
-            path "CMakeLists.txt"
-        }
-    }
+//    externalNativeBuild {
+//        cmake {
+//            path "CMakeLists.txt"
+//        }
+//    }
 
     lintOptions {
         checkReleaseBuilds false
