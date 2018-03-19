@@ -92,7 +92,7 @@ dependencies {
 
     // 图片裁剪 crop
     // compile "com.soundcloud.android:android-crop:$rootProject.imageCropVersion"
-    implementation project(':cropLib')
+    implementation project(':SubModule:android-crop:lib')
     //知乎图片选择库
     //    compile 'com.zhihu.android:matisse:0.4.3'
     implementation project(':SubModule:Matisse:matisse')

@@ -4,3 +4,6 @@
 [submodule "SubModule/Matisse"]
 	path = SubModule/Matisse
 	url = git@lanboys1225.github:lanboys1225/Matisse.git
+[submodule "SubModule/android-crop"]
+	path = SubModule/android-crop
+	url = git@lanboys1225.github:lanboys1225/android-crop.git
