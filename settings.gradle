@@ -1,5 +1,5 @@
 include       ':Sample'/*, ':myapplication12', ':CommSample'*/
 include       ':cropLib'
-include       ':matisse'
-include       ':LoadDataLayoutLib'
+include       ':SubModule:Matisse:matisse'
+include       ':SubModule:LoadDataLayout:loaddatalayout'
 include       ':CommLib'

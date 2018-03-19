@@ -95,9 +95,9 @@ dependencies {
     implementation project(':cropLib')
     //知乎图片选择库
     //    compile 'com.zhihu.android:matisse:0.4.3'
-    implementation project(':matisse')
+    implementation project(':SubModule:Matisse:matisse')
     //公共页面控制
-    implementation project(':LoadDataLayoutLib')
+    implementation project(':SubModule:LoadDataLayout:loaddatalayout')
 
     //时间 地区选择器
     compile 'com.contrarywind:Android-PickerView:3.2.4'
