@@ -22,9 +22,13 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.concurrent.TimeUnit;
 
+import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
 
 import okhttp3.Cache;
 import okhttp3.OkHttpClient;
@@ -138,9 +142,16 @@ public abstract class BaseApiManager {
         }
 
         //https
-        SSLSocketFactory certificates = getCertificates();
+        SSLSocketFactory certificates = getUnsafeCertificates();
+        //SSLSocketFactory certificates = getCertificates();
         if (certificates != null) {
             builder.sslSocketFactory(certificates);
+            builder.hostnameVerifier(new HostnameVerifier() {
+                @Override
+                public boolean verify(String hostname, SSLSession session) {
+                    return true;
+                }
+            });
         }
 
         // http cache
@@ -248,25 +259,56 @@ public abstract class BaseApiManager {
 
         try {
             CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
+            X509Certificate cert = (X509Certificate) certificateFactory.generateCertificate(inputStream);
+            log.i("getCertificates(): " + cert.toString());
 
             KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
             keyStore.load(null, null);
-
-            X509Certificate cert = (X509Certificate) certificateFactory.generateCertificate(inputStream);
             keyStore.setCertificateEntry("0", cert);
-            log.i("getCertificates(): " + cert.toString());
 
-            SSLContext sslContext = SSLContext.getInstance("TLS");
             TrustManagerFactory trustManagerFactory =
                     TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
             trustManagerFactory.init(keyStore);
-            sslContext.init(null, trustManagerFactory.getTrustManagers(), new SecureRandom());
+            TrustManager[] trustManagers = trustManagerFactory.getTrustManagers();
 
+            SSLContext sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(null, trustManagers, new SecureRandom());
             return sslContext.getSocketFactory();
         } catch (Exception e) {
             log.e("getCertificates():  加载证书异常： ", e);
         }
 
+        return null;
+    }
+
+    private SSLSocketFactory getUnsafeCertificates() {
+        //http://blog.csdn.net/voidmain_123/article/details/52703464
+
+        try {
+            // Create a trust manager that does not validate certificate chains
+            final TrustManager[] trustAllCerts = new TrustManager[]{
+                    new X509TrustManager() {
+                        @Override
+                        public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType) {
+                        }
+
+                        @Override
+                        public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType) {
+                        }
+
+                        @Override
+                        public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                            return new java.security.cert.X509Certificate[]{};
+                        }
+                    }
+            };
+
+            final SSLContext sslContext = SSLContext.getInstance("SSL");
+            sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
+            return sslContext.getSocketFactory();
+        } catch (Exception e) {
+            log.e("getCertificates():  加载不安全证书异常： ", e);
+        }
         return null;
     }
 

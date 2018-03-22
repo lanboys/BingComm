@@ -82,7 +82,7 @@ ext {
     guavaVersion = '19.0'
 
     //multidex
-    multidexVersion = '1.0.1'
+    multidexVersion = '1.0.2'
 
     //butterknife
     butterknifeVersion = '8.4.0'

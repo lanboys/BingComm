@@ -6,6 +6,7 @@
         <item>android.permission.ACCESS_NETWORK_STATE</item>
         <item>android.permission.INTERNET</item>
         <item>android.permission.ACCESS_WIFI_STATE</item>
+        <item>android.permission.READ_PHONE_STATE</item>
     </string-array>
 
     <!-- amap -->
