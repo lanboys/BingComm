@@ -157,7 +157,9 @@ public abstract class BasePresenter<
         if (e == null || mView == null) {
             return;
         }
-        if (e instanceof NullPointerException) {//Null is not a valid element
+        if (e instanceof MvpHttpException) {//Null is not a valid element
+            showError("自定义Http请求异常: " + e.getMessage());
+        } else if (e instanceof NullPointerException) {//Null is not a valid element
             showError("空指针 NullPointerException");
         } else if (e instanceof NetworkOnMainThreadException) {
             showError("主线程网络请求异常..");
@@ -215,6 +217,13 @@ public abstract class BasePresenter<
                     mView.closeRefreshing();
                 }
                 break;
+        }
+    }
+
+    public static class MvpHttpException extends RuntimeException {
+
+        public MvpHttpException(String message) {
+            super(message);
         }
     }
 }

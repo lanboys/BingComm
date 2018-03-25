@@ -7,12 +7,10 @@ import android.view.ViewGroup;
 
 import java.util.List;
 
-import butterknife.ButterKnife;
-
 public abstract class BaseRecyclerAdapter<T> extends
         RecyclerView.Adapter< BaseViewHolder> {
 
-    public static final int ITEM_TYPE_NORMAL = 0;
+    public static final int ITEM_TYPE_NORMAL = 1000;
     /*数据集合*/
     protected List<T> data;
     /*单击事件*/

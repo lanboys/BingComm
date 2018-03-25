@@ -73,5 +73,7 @@ public interface IBaseContract {
         void refreshTask(int action);
 
         void requestData(int action, OnDataChangerListener listener, Object... parameter);
+
+        OnDataChangerListener wrapperOnDataChangerListener(final OnDataChangerListener presenter);
     }
 }

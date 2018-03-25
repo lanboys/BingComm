@@ -24,13 +24,14 @@ import okhttp3.RequestBody;
 /**
  * @author 蓝兵
  */
-public abstract class BaseModule implements IBaseContract.IBaseModule {
+public abstract class BaseModule implements IBaseContract.IBaseModule, OnDataChangerListener {
 
     // @Inject
     // protected LogUtil log;
     protected final LogUtil log = LogUtil.getLogUtil(getClass(), LogUtil.LOG_VERBOSE);
     protected Map<String, MvpObserver> mSubscriptions = new HashMap<>();
     //protected Map<String, Subscription> mSubscriptions = new HashMap<>();
+    protected OnDataChangerListener presenter;
 
     public BaseModule() {
         // DaggerDiComponent.builder()
@@ -113,7 +114,7 @@ public abstract class BaseModule implements IBaseContract.IBaseModule {
         MvpObserver<T> observer = MvpObserver.newBuilder()
                 .action(action)
                 .log(log)
-                .dataChangeListener(listener)
+                .dataChangeListener(wrapperOnDataChangerListener(listener))
                 .description(onNextString)
                 .build();
 
@@ -123,6 +124,52 @@ public abstract class BaseModule implements IBaseContract.IBaseModule {
 
         mSubscriptions.put(String.valueOf(action), observer);
         return observer;
+    }
+
+    @Override
+    public OnDataChangerListener wrapperOnDataChangerListener(OnDataChangerListener presenter) {
+        this.presenter = presenter;
+        return this;
+    }
+
+    @Override
+    public void onSuccess(int action, Object data) {
+        if (presenter != null) {
+            presenter.onSuccess(action, data);
+        }
+    }
+
+    @Override
+    public void onLoading(int action) {
+        if (presenter != null) {
+            presenter.onLoading(action);
+        }
+    }
+
+    @Override
+    public void onError(int action, Throwable e) {
+        if (presenter != null) {
+            presenter.onError(action, e);
+        }
+    }
+
+    @Override
+    public void onCompleted(int action) {
+        if (presenter != null) {
+            presenter.onCompleted(action);
+        }
+    }
+
+    @Override
+    public void onNetError(int action, String tip) {
+        if (presenter != null) {
+            presenter.onNetError(action, tip);
+        }
+    }
+
+    @Override
+    public boolean isDetachView() {
+        return presenter != null && presenter.isDetachView();
     }
 
     protected MultipartBody.Part createMultipartBodyPart(String name, File file) {
