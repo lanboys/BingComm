@@ -172,4 +172,10 @@ public abstract class BaseModule implements IBaseContract.IBaseModule {
             map.put(name, value);
         }
     }
+
+    public void checkNotNullAdd(Map<String, String> map, String value, String name) {
+        if (null != value) {
+            map.put(name, value);
+        }
+    }
 }

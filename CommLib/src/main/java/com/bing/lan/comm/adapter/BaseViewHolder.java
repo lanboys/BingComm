@@ -1,37 +1,27 @@
-// package com.bing.lan.comm.adapter;
-//
-// import android.support.annotation.LayoutRes;
-// import android.view.View;
-//
-// import com.bing.lan.comm.utils.LogUtil;
-// import com.bing.lan.comm.app.AppUtil;
-//
-// import butterknife.ButterKnife;
-//
-// /**
-//  * @author 蓝兵
-//  * @time 2017/1/13  20:37
-//  */
-// public abstract class BaseViewHolder<M> {
-//
-//     public View mView;
-//     public M mBean;
-//
-//     protected final LogUtil log = LogUtil.getLogUtil(getClass(), LogUtil.LOG_VERBOSE);
-//
-//     public BaseViewHolder(View view) {
-//         this.mView = view;//少了this 要报错
-//         ButterKnife.bind(this, this.mView);
-//     }
-//
-//     public BaseViewHolder(@LayoutRes int resource) {
-//         this.mView = View.inflate(AppUtil.getAppContext(), resource, null);
-//         ButterKnife.bind(this, this.mView);
-//     }
-//
-//     public abstract void refreshViewData(M bean, int position);
-//
-//     public void refreshViewData(M bean) {
-//         refreshViewData(bean, 0);
-//     }
-// }
+package com.bing.lan.comm.adapter;
+
+import android.support.v7.widget.RecyclerView;
+import android.view.View;
+
+import butterknife.ButterKnife;
+
+/**
+ * Created by 蓝兵 on 2018/3/24.
+ */
+
+public abstract class BaseViewHolder<T> extends RecyclerView.ViewHolder {
+
+    public View itemView;
+
+    public View getItemView() {
+        return itemView;
+    }
+
+    public BaseViewHolder(View itemView) {
+        super(itemView);
+        this.itemView = itemView;
+        ButterKnife.bind(this, itemView);
+    }
+
+    public abstract void fillData(T data, int position);
+}

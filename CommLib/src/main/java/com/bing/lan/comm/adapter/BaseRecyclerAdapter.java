@@ -10,7 +10,7 @@ import java.util.List;
 import butterknife.ButterKnife;
 
 public abstract class BaseRecyclerAdapter<T> extends
-        RecyclerView.Adapter<BaseRecyclerAdapter.BaseViewHolder> {
+        RecyclerView.Adapter< BaseViewHolder> {
 
     public static final int ITEM_TYPE_NORMAL = 0;
     /*数据集合*/
@@ -26,7 +26,7 @@ public abstract class BaseRecyclerAdapter<T> extends
     /**
      * 返回BaseViewHolder的子类
      */
-    public abstract BaseRecyclerAdapter.BaseViewHolder createViewHolder(View itemView, int type);
+    public abstract  BaseViewHolder createViewHolder(View itemView, int type);
 
     /**
      * 设置事件单击监听器
@@ -41,10 +41,10 @@ public abstract class BaseRecyclerAdapter<T> extends
     }
 
     @Override
-    public BaseRecyclerAdapter.BaseViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public  BaseViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
         final View itemView = inflater.inflate(getItemLayoutResId(viewType), parent, false);
-        final BaseRecyclerAdapter.BaseViewHolder holder = createViewHolder(itemView, viewType);
+        final  BaseViewHolder holder = createViewHolder(itemView, viewType);
         if (mListener != null) {
             itemView.setOnClickListener(
                     new View.OnClickListener() {
@@ -64,7 +64,7 @@ public abstract class BaseRecyclerAdapter<T> extends
     }
 
     @Override
-    public void onBindViewHolder(BaseRecyclerAdapter.BaseViewHolder holder, int position) {
+    public void onBindViewHolder( BaseViewHolder holder, int position) {
         holder.fillData(data.get(position), position);
     }
 
@@ -104,21 +104,21 @@ public abstract class BaseRecyclerAdapter<T> extends
         void onRecyclerViewItemClick(View v, int position);
     }
 
-    protected abstract class BaseViewHolder extends RecyclerView.ViewHolder {
-
-        public View itemView;
-
-        public View getItemView() {
-            return itemView;
-        }
-
-        public BaseViewHolder(View itemView) {
-            super(itemView);
-            this.itemView = itemView;
-            ButterKnife.bind(this, itemView);
-        }
-
-        public abstract void fillData(T data, int position);
-    }
+    //protected abstract class BaseViewHolder extends RecyclerView.ViewHolder {
+    //
+    //    public View itemView;
+    //
+    //    public View getItemView() {
+    //        return itemView;
+    //    }
+    //
+    //    public BaseViewHolder(View itemView) {
+    //        super(itemView);
+    //        this.itemView = itemView;
+    //        ButterKnife.bind(this, itemView);
+    //    }
+    //
+    //    public abstract void fillData(T data, int position);
+    //}
 }
 
