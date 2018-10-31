@@ -92,12 +92,15 @@ dependencies {
 
     // 图片裁剪 crop
     // compile "com.soundcloud.android:android-crop:$rootProject.imageCropVersion"
-    api project(':Submodules:BingComm:SubModule:android-crop:lib')
+    api project(':cropLib')
+//    api project(':SubModule:android-crop:lib')
     //知乎图片选择库
     //    compile 'com.zhihu.android:matisse:0.4.3'
-    api project(':Submodules:BingComm:SubModule:Matisse:matisse')
+    api project(':matisse')
+//    api project(':SubModule:Matisse:matisse')
     //公共页面控制
-    api project(':Submodules:BingComm:SubModule:LoadDataLayout:loaddatalayout')
+    api project(':LoadDataLayoutLib')
+//    api project(':SubModule:LoadDataLayout:loaddatalayout')
 
     //时间 地区选择器
     compile 'com.contrarywind:Android-PickerView:3.2.4'
